@@ -260,24 +260,16 @@
         </header>
 
         <div class="post-content">
-            <h1 id="图卷积神经网络的半监督分类-GCN"><a href="#图卷积神经网络的半监督分类-GCN" class="headerlink" title="图卷积神经网络的半监督分类(GCN)"></a>图卷积神经网络的半监督分类(GCN)</h1>
-
-	<div class="row">
-    <embed src="DCN.pdf" width="100%" height="550" type="application/pdf">
-	</div>
-
-
-
-<h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1.背景"></a>1.背景</h2><p>图结构本身+节点特征<br><img src="/2022/06/28/GCN/559.png" alt="559"></p>
-<p><img src="/2022/06/28/GCN/560.png" alt="560"><br><strong>四篇频域核心论文</strong></p>
+            <h1 id="图卷积神经网络的半监督分类-GCN"><a href="#图卷积神经网络的半监督分类-GCN" class="headerlink" title="图卷积神经网络的半监督分类(GCN)"></a>图卷积神经网络的半监督分类(GCN)</h1><h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1.背景"></a>1.背景</h2><p>图结构本身+节点特征<br><img src="/post/c115af07.htm/559.png" alt="559"></p>
+<p><img src="/post/c115af07.htm/560.png" alt="560"><br><strong>四篇频域核心论文</strong></p>
 <ul>
 <li>ICLR 2014</li>
 <li>ChebyNet (NIPS 2016)</li>
 <li>PATCHY-SAN (ICML 2016)</li>
 <li>Graph Convolutional Network (ICLR 2017)</li>
 </ul>
-<h2 id="2-项目成果"><a href="#2-项目成果" class="headerlink" title="2.项目成果"></a>2.项目成果</h2><p><img src="/2022/06/28/GCN/uc-1656407379406"><br><img src="/2022/06/28/GCN/563.png" alt="563"></p>
-<p><img src="/2022/06/28/GCN/564.png" alt="564"></p>
+<h2 id="2-项目成果"><a href="#2-项目成果" class="headerlink" title="2.项目成果"></a>2.项目成果</h2><p><img src="/post/c115af07.htm/uc-1656407379406"><br><img src="/post/c115af07.htm/563.png" alt="563"></p>
+<p><img src="/post/c115af07.htm/564.png" alt="564"></p>
 <p>GCN意义</p>
 <ul>
 <li>卷积神经网络最常用的几个模型之一（GCN，GAT，GraphSAGE）</li>
@@ -286,12 +278,12 @@
 <li>卷积的参数共享，对于每个节点参数是共享的</li>
 <li>图神经网络的最重要模型之一</li>
 </ul>
-<h2 id="3-GCN结构"><a href="#3-GCN结构" class="headerlink" title="3.GCN结构"></a>3.GCN结构</h2><p><img src="/2022/06/28/GCN/567.png" alt="567"></p>
+<h2 id="3-GCN结构"><a href="#3-GCN结构" class="headerlink" title="3.GCN结构"></a>3.GCN结构</h2><p><img src="/post/c115af07.htm/567.png" alt="567"></p>
 <p><strong>模型框架</strong></p>
 <script type="math/tex; mode=display">
 \hat{A}=\tilde{D}^{-\frac{1}{2}} \tilde{A} \tilde{D}^{-\frac{1}{2}}\\
 Z=f(X, A)=\operatorname{softmax}\left(\hat{A} \operatorname{ReLU}\left(\hat{A} X W^{(0)}\right) W^{(1)}\right)\\</script><p>$\mathcal{L}=-\sum_{l \in \mathcal{Y}_{L}} \sum_{f=1}^{F} Y_{l f} \ln Z_{l f}$</p>
-<p><img src="/2022/06/28/GCN/561.png" alt="561"></p>
+<p><img src="/post/c115af07.htm/561.png" alt="561"></p>
 <p>Two major approaches to build Graph CNNs：</p>
 <ol>
 <li><strong>Spatial Domain:</strong><br>Perform convolution in spatial domain similar to images (euclidean data) with shareable weight parameters</li>
@@ -303,7 +295,7 @@ Z=f(X, A)=\operatorname{softmax}\left(\hat{A} \operatorname{ReLU}\left(\hat{A} X
 <li>Spectral construction is more principled but usually slow. Computing Laplacian eigenvectors for large scale<br>data could be painful. </li>
 <li>Research tries to bridge the gap. (This paper GCN!)</li>
 </ul>
-<h2 id="4-RGCN"><a href="#4-RGCN" class="headerlink" title="4.RGCN"></a>4.RGCN</h2><p><img src="/2022/06/28/GCN/568.png" alt="568"></p>
+<h2 id="4-RGCN"><a href="#4-RGCN" class="headerlink" title="4.RGCN"></a>4.RGCN</h2><p><img src="/post/c115af07.htm/568.png" alt="568"></p>
 <ul>
 <li>$N_i^r$表示节点$i$的关系为$r$的邻居节点集合</li>
 <li>$c_{i,r}$是一个正则化常量，其中$c_{i,r}$的取值为$|N_i^r|$</li>
@@ -412,7 +404,7 @@ f^{T} L f=f^{T} D f-f^{T} W f=\sum_{i=1}^{n} d_{i} f_{i}^{2}-\sum_{i, j=1}^{n} f
 <p>根据卷积定理，卷积公式还可以写成</p>
 <script type="math/tex; mode=display">
 f*g=\mathcal{F} ^{-1}\{\mathcal{F} \{f\}\cdot\mathcal{F} \{g\}\}</script><p>这样我们只需要定义graph上的fourier变换，就可以定义出graph上的convolution变换。</p>
-<p><img src="/2022/06/28/GCN/v2-a340c2e24f4b8c580a4c5de5b3196190_b.webp" alt></p>
+<p><img src="/post/c115af07.htm/v2-a340c2e24f4b8c580a4c5de5b3196190_b.webp" alt></p>
 <p>Fourier变换的定义:</p>
 <script type="math/tex; mode=display">
 \mathcal{F}\{f\}(v)=\int_{\mathbb{R}}f(x)e^{-2\pi i x v}dx</script><p>Inverse Fourier变换则是:</p>
@@ -686,7 +678,7 @@ x \star_{G} g_{\theta}=\theta\left(\tilde{D}^{-1 / 2} \tilde{W} \tilde{D}^{-1 / 
                 
                     <p class="copyright-item">
                         <span>Permalink:</span>
-                        <span><a href="http://example.com/2022/06/28/GCN/">http://example.com/2022/06/28/GCN/</a></span>
+                        <span><a href="http://example.com/post/c115af07.html">http://example.com/post/c115af07.html</a></span>
                     </p>
                 
                 
@@ -728,7 +720,7 @@ x \star_{G} g_{\theta}=\theta\left(\tilde{D}^{-1 / 2} \tilde{W} \tilde{D}^{-1 / 
         <section class="post-nav">
             
             
-            <a class="next" rel="next" href="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/">实用的工具--shell</a>
+            <a class="next" rel="next" href="/post/undefined.html">实用的工具--shell</a>
             
         </section>
 

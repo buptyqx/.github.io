@@ -260,14 +260,419 @@
         </header>
 
         <div class="post-content">
-            <h1 id="图卷积神经网络的半监督分类-GCN"><a href="#图卷积神经网络的半监督分类-GCN" class="headerlink" title="图卷积神经网络的半监督分类(GCN)"></a>图卷积神经网络的半监督分类(GCN)</h1><p>
+            <h1 id="图卷积神经网络的半监督分类-GCN"><a href="#图卷积神经网络的半监督分类-GCN" class="headerlink" title="图卷积神经网络的半监督分类(GCN)"></a>图卷积神经网络的半监督分类(GCN)</h1>
 
 	<div class="row">
-    <embed src="&lt;a" width="100%" height="550" type="application/pdf">
+    <embed src="https://github.com/buptyqx/buptyqx.github.io/blob/master/file/DCN.pdf" width="100%" height="550" type="application/pdf">
 	</div>
 
 
-</p>
+
+<h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1.背景"></a>1.背景</h2><p>图结构本身+节点特征<br><img src="/2022/06/28/GCN/559.png" alt="559"></p>
+<p><img src="/2022/06/28/GCN/560.png" alt="560"><br><strong>四篇频域核心论文</strong></p>
+<ul>
+<li>ICLR 2014</li>
+<li>ChebyNet (NIPS 2016)</li>
+<li>PATCHY-SAN (ICML 2016)</li>
+<li>Graph Convolutional Network (ICLR 2017)</li>
+</ul>
+<h2 id="2-项目成果"><a href="#2-项目成果" class="headerlink" title="2.项目成果"></a>2.项目成果</h2><p><img src="/2022/06/28/GCN/uc-1656407379406"><br><img src="/2022/06/28/GCN/563.png" alt="563"></p>
+<p><img src="/2022/06/28/GCN/564.png" alt="564"></p>
+<p>GCN意义</p>
+<ul>
+<li>卷积神经网络最常用的几个模型之一（GCN，GAT，GraphSAGE）</li>
+<li>将卷积算法直接用于处理图结构数据，频域分析与消息传播公式</li>
+<li>图频域卷积的局部一阶近似，单层的GCN处理图中一阶邻居上的信息，K层GCN处理K阶邻居</li>
+<li>卷积的参数共享，对于每个节点参数是共享的</li>
+<li>图神经网络的最重要模型之一</li>
+</ul>
+<h2 id="3-GCN结构"><a href="#3-GCN结构" class="headerlink" title="3.GCN结构"></a>3.GCN结构</h2><p><img src="/2022/06/28/GCN/567.png" alt="567"></p>
+<p><strong>模型框架</strong></p>
+<script type="math/tex; mode=display">
+\hat{A}=\tilde{D}^{-\frac{1}{2}} \tilde{A} \tilde{D}^{-\frac{1}{2}}\\
+Z=f(X, A)=\operatorname{softmax}\left(\hat{A} \operatorname{ReLU}\left(\hat{A} X W^{(0)}\right) W^{(1)}\right)\\</script><p>$\mathcal{L}=-\sum_{l \in \mathcal{Y}_{L}} \sum_{f=1}^{F} Y_{l f} \ln Z_{l f}$</p>
+<p><img src="/2022/06/28/GCN/561.png" alt="561"></p>
+<p>Two major approaches to build Graph CNNs：</p>
+<ol>
+<li><strong>Spatial Domain:</strong><br>Perform convolution in spatial domain similar to images (euclidean data) with shareable weight parameters</li>
+<li><strong>Spectral Domain:</strong><br>Convert Graph data to spectral domain data by using the eigenvectors of laplacian operator on the graph data<br>and perform learning on the transformed data.</li>
+</ol>
+<p><strong>Graph CNN Summary</strong></p>
+<ul>
+<li>Spatial construction is usually more efficient but less principled.</li>
+<li>Spectral construction is more principled but usually slow. Computing Laplacian eigenvectors for large scale<br>data could be painful. </li>
+<li>Research tries to bridge the gap. (This paper GCN!)</li>
+</ul>
+<h2 id="4-RGCN"><a href="#4-RGCN" class="headerlink" title="4.RGCN"></a>4.RGCN</h2><p><img src="/2022/06/28/GCN/568.png" alt="568"></p>
+<ul>
+<li>$N_i^r$表示节点$i$的关系为$r$的邻居节点集合</li>
+<li>$c_{i,r}$是一个正则化常量，其中$c_{i,r}$的取值为$|N_i^r|$</li>
+<li>$W_r^{(l)}$是线性转化函数，将同类型边的邻居节点，使用用一个参数矩阵$W_r^{(l)}$进行转化。</li>
+</ul>
+<p>此公式与GCN不同的是，不同边类型所连接的邻居节点，进行一个线性转化，$W_r^{(l)}$的个数也就是边类型的个数，论文中称为relation-specific。当然此处还可以设置更加灵活的函数，例如多层神经网络。</p>
+<h2 id="5-拉普拉斯算子"><a href="#5-拉普拉斯算子" class="headerlink" title="5.拉普拉斯算子"></a>5.拉普拉斯算子</h2><p>laplacian算子简单的来说就是二阶导数：</p>
+<script type="math/tex; mode=display">
+\Delta f(x)=\lim _{h \rightarrow 0} \frac{f(x+h)-2 f(x)+f(x-h)}{h^{2}}</script><p>那在graph上，我们可以定义一阶导数为:</p>
+<script type="math/tex; mode=display">
+f_{*g}'(x)=f(x)-f(y)</script><p>其中y是x的邻居节点,那么对应的Laplacian算子可以定义为:</p>
+<script type="math/tex; mode=display">
+\Delta_{* g} f^{\prime}(x)=\Sigma_{y \sim x} f(x)-f(y)</script><p><strong>拉普拉斯算子：</strong> 拉普拉斯算子（Laplace Operator）是$n$维欧几里得空间中的一个二阶微分算子，定义为梯度<br>($\nabla f$)的散度$\nabla$：</p>
+<script type="math/tex; mode=display">
+\triangle f= \nabla f^2= \nabla \nabla f=\text{div} (\text{grad}\ f )\\
+\Delta f=\frac{\partial^{2} f}{\partial x^{2}}+\frac{\partial^{2} f}{\partial y^{2}}+\frac{\partial^{2} f}{\partial z^{2}} \\</script><p>n维形式:</p>
+<script type="math/tex; mode=display">
+\Delta=\sum_{i} \frac{\partial^{2}}{\partial x_{i}^{2}}</script><p>下面推导离散函数的导数：</p>
+<script type="math/tex; mode=display">
+\frac{\partial f}{\partial x}=f^{\prime}(x)=f(x+1)-f(x)\\
+\frac{\partial^{2} f}{\partial x^{2}}=f^{\prime \prime}(x) \approx f^{\prime}(x)-f^{\prime}(x-1)=f(x+1)+f(x-1)-2 f(x)</script><script type="math/tex; mode=display">
+\begin{align}
+\Delta f & = \frac{\partial^{2} f}{\partial x^{2}}+\frac{\partial^{2} f}{\partial y^{2}}\\ & = f(x+1, y)+f(x-1, y)-2 f(x, y)+f(x, y+1)+f(x, y-1)-2 f(x, y) \\ & = f(x+1, y)+f(x-1, y)+f(x, y+1)+f(x, y-1)-4 f(x, y)
+\end{align}</script><p>拉普拉斯矩阵:</p>
+<script type="math/tex; mode=display">
+\Delta f_{i}=\sum_{j \in N_{i}}\left(f_{i}-f_{j}\right)</script><p>如果边$E_{ij}$具有权重$W_{ij}$时，则有：$\Delta f_{i}=\sum_{j \in N_{i}} W_{i j}\left(f_{i}-f_{j}\right)$,由于当$W_{ij}=0$时表示节点$i,j$不相邻，推导有：</p>
+<script type="math/tex; mode=display">
+\Delta f_{i}=\sum_{j \in N} w_{i j}\left(f_{i}-f_{j}\right) =\sum_{j \in N} w_{i j} f_{i}-\sum_{j \in N} w_{i j} f_{j} =d_{i} f_{i}-w_{i:} f</script><p>其中$d_i=\sum_{j\in N}w_{ij}$是顶点$i$的度。$w_{i:}=\left(w_{i 1}, \ldots, w_{i N}\right)$是$N$维行向量，$\quad f=\left(\begin{array}{c}<br>f_{1} \\<br>\vdots \\<br>f_{N}<br>\end{array}\right)$是$N$维列向量，$w_{i:}f$表示两个向量的内积，对于所有的$N$个节点有：</p>
+<script type="math/tex; mode=display">
+\begin{array}{l}
+\Delta f=\left(\begin{array}{c}
+\Delta f_{1} \\
+\vdots \\
+\Delta f_{N}
+\end{array}\right)=\left(\begin{array}{c}
+d_{1} f_{1}-w_{1:} f \\
+\vdots \\
+d_{N} f_{N}-w_{N:} f
+\end{array}\right) 
+\\=\left(\begin{array}{ccc}
+d_{1} & \cdots & 0 \\
+\vdots & \ddots & \vdots \\
+0 & \cdots & d_{N}
+\end{array}\right) f-\left(\begin{array}{c}
+w_{1:} \\
+\vdots \\
+w_{N:}
+\end{array}\right) f 
+\\=\operatorname{diag}\left(d_{i}\right) f-W f 
+=(D-W) f 
+=L f
+\end{array}</script><p>所以:</p>
+<script type="math/tex; mode=display">
+(L f)(i)=\sum_{j \in \mathcal{N}_{i}} W_{i, j}[f(i)-f(j)]</script><h2 id="6-拉普拉斯矩阵"><a href="#6-拉普拉斯矩阵" class="headerlink" title="6.拉普拉斯矩阵"></a>6.拉普拉斯矩阵</h2><p><strong>拉普拉斯矩阵</strong></p>
+<p>对于具有$n$个节点的简单图$G=(V,E)$,若其所有的边都是无向的，那个该图的拉普拉斯矩阵$\mathbf{L} \in \mathbb{R} ^{n\times n}$定义如下：</p>
+<script type="math/tex; mode=display">
+\mathbf{L}=\mathbf{D}-\mathbf{A}</script><p>矩阵的元素如下：</p>
+<script type="math/tex; mode=display">
+L_{i j}=\left\{\begin{array}{ll}
+d\left(v_{i}\right) & (i=j) \\
+-1 & \left(\left(v_{i}, v_{j}\right) \in E \text { 且 } i \neq j\right) \\
+0 & \text { (其他情况 })
+\end{array}\right.</script><p><strong>对称归一化拉普拉斯矩阵</strong></p>
+<p>定义如下：</p>
+<script type="math/tex; mode=display">
+\boldsymbol{L}^{\mathrm{sym}}=\boldsymbol{D}^{-\frac{1}{2}} \boldsymbol{L} \boldsymbol{D}^{-\frac{1}{2}} =\boldsymbol{I}-\boldsymbol{D}^{-\frac{1}{2}} \boldsymbol{A} \boldsymbol{D}^{-\frac{1}{2}} \\</script><p>矩阵的元素如下：</p>
+<script type="math/tex; mode=display">
+L_{i j}^{\mathrm{sym}}=\left\{\begin{array}{ll}
+1 & \left(i=j \text { 且 } d\left(v_{i}\right) \neq 0\right) \\
+-\frac{1}{\sqrt{d\left(v_{i}\right) d\left(v_{j}\right)}} & \left(\left(v_{i}, v_{j}\right) \in E \text { 且 } i \neq j\right) \\
+0 & (\text { 其他情况 })
+\end{array}\right.</script><p><strong>随机游走归一化拉普拉斯矩阵</strong></p>
+<p>定义如下：</p>
+<script type="math/tex; mode=display">
+\boldsymbol{L}^{\mathbf{r w}}=\boldsymbol{D}^{-1} \boldsymbol{L}=\boldsymbol{I}-\boldsymbol{D}^{-1} \boldsymbol{A}</script><p>矩阵的元素如下：</p>
+<script type="math/tex; mode=display">
+L_{i j}^{\mathrm{rw}}=\left\{\begin{array}{cl}
+1 & \left(i=j \text { 且 } d\left(v_{i}\right) \neq 0\right) \\
+-\frac{1}{d\left(v_{i}\right)} & \left(\left(v_{i}, v_{j}\right) \in E \text { 且 } i \neq j\right) \\
+0 & \text { (其他情况 })
+\end{array}\right.</script><p>性质：</p>
+<ul>
+<li>半正定性</li>
+</ul>
+<script type="math/tex; mode=display">
+f^{T} L f=f^{T} D f-f^{T} W f=\sum_{i=1}^{n} d_{i} f_{i}^{2}-\sum_{i, j=1}^{n} f_{i} f_{j} W_{i j} \\
+=\frac{1}{2}\left(\sum_{i=1}^{n} d_{i} f_{i}^{2}-2 \sum_{i, j=1}^{n} f_{i} f_{j} W_{i j}+\sum_{j=1}^{n} d_{j} f_{j}^{2}\right) \\
+=\frac{1}{2}\left(\sum_{i, j=1}^{n} W_{i j}\left(f_{i}-f_{j}\right)^{2}\right) \geq 0</script><ul>
+<li>$n$阶对称矩阵一定有$n$个线性无关的特征向量。</li>
+<li>对称矩阵的不同特征值对应的特征向量相互正交，这些正交的特征向量构成<br>的矩阵为正交矩阵。</li>
+<li>实对称矩阵的特征向量一定是实向量</li>
+<li>半正定矩阵的特征值一定非负。</li>
+<li>$n$阶对称矩阵一定有$n$个线性无关的特征向量（对称矩阵性质）。$n$维线性空间中的$n$个线性无关的向量都可以构成它的一组基（矩阵论知识）。拉普拉斯矩阵的$n$个特征向量是线性无关的，他们是$n$维空间中的一组基。</li>
+<li>对称矩阵的不同特征值对应的特征向量相互正交，这些正交的特征向量构成的矩阵为正交矩阵（对称矩阵性质）,拉普拉斯矩阵的$n$个特征向量是$n$维空间中的一组标准正交基。</li>
+</ul>
+<p>严谨的证明见《Discrete Regularization on Weighted Graphs for<br>Image and Mesh Filtering》这篇文章。其中定义了在图上如何做梯度运<br>算和散度运算。</p>
+<p><strong>特征向量基的性质</strong>：</p>
+<ul>
+<li><strong>拉普拉斯矩阵的特征值担任了和频率类似的位置</strong>。拉普拉斯的特征值都是非负的。且最小特征值为0。类似于经典傅里叶变换中的常数值（可视为频率为0）</li>
+<li><strong>拉普拉斯矩阵的特征向量担任了基函数的位置。</strong>0特征值对应一个常数特征向量,这个和经典傅里叶变换中的常数项类似。低特征值对应的特征向量比较平滑，高特征值对应的特征向量变换比较剧烈。两者对应于低频基函数和高频基函数。</li>
+<li><strong>通过定义图拉普拉斯二次型 (graph Laplacian quadratic form)来</strong>定义信号的平滑程度。其表示有边相连的两个节点信号的平方差乘以边的权重后求和。其值越小，代表信号$x$越平滑：$x^{T} L x=1 / 2 \sum_{i, j=1}^{m} W_{i, j}(x(i)-x(j))^{2}$。当特征向量带入这个函数时,二次型的值等于特征值。这恰好是符合经典傅里叶变换中的频率<br>设定——频率越高，基函数（余弦函数）变化越陡峭。</li>
+</ul>
+<h2 id="7-傅里叶变换"><a href="#7-傅里叶变换" class="headerlink" title="7.傅里叶变换"></a>7.傅里叶变换</h2><p>Convolution的数学定义是:</p>
+<script type="math/tex; mode=display">
+(f*g)(t)=\int_{\mathbb{R}}f(x)g(t-x)dx</script><p>一般称$g$为作用在$f$上的filter或kernel</p>
+<p>根据卷积定理，卷积公式还可以写成</p>
+<script type="math/tex; mode=display">
+f*g=\mathcal{F} ^{-1}\{\mathcal{F} \{f\}\cdot\mathcal{F} \{g\}\}</script><p>这样我们只需要定义graph上的fourier变换，就可以定义出graph上的convolution变换。</p>
+<p><img src="/2022/06/28/GCN/v2-a340c2e24f4b8c580a4c5de5b3196190_b.webp" alt></p>
+<p>Fourier变换的定义:</p>
+<script type="math/tex; mode=display">
+\mathcal{F}\{f\}(v)=\int_{\mathbb{R}}f(x)e^{-2\pi i x v}dx</script><p>Inverse Fourier变换则是:</p>
+<script type="math/tex; mode=display">
+\mathcal{F}^{-1}\{f\}(x)=\int_{\mathbb{R}}f(x)e^{2\pi i x v}dv</script><ul>
+<li>傅里叶反变换的本质是：把任意一个函数表示成了若干个正交基函数的线性组合。</li>
+<li>傅里叶正变换的本质是：求线性组合的的系数。具体做法是由原函数和基函数的<br>共轭的内积求得。</li>
+</ul>
+<script type="math/tex; mode=display">
+F(w)=\sum_{t=1}^{n} f(t) e^{-i \frac{2 \pi}{n} w t} \\
+f(t)=\frac{1}{n} \sum_{w=1}^{n} F(w) e^{i \frac{2 \pi}{n} w t}</script><p>根据特征值和特征向量的关系：</p>
+<script type="math/tex; mode=display">
+\mathbf{A v}=\lambda \mathbf{v}</script><p>对$e^{-i \omega t}$做拉普拉斯算子：</p>
+<script type="math/tex; mode=display">
+\Delta e^{-i \omega t}=\frac{\partial^{2}}{\partial t^{2}} e^{-i \omega t}=-\omega^{2} e^{-i \omega t}</script><p>可以将$\Delta$比作特征值公式中的$\mathbf{A}$，将$-\omega^{2}$比作$\lambda$，可以完全对应特征值与特征向量的关系，即$e^{-i \omega t}$是拉普拉斯算子的特征向量。类比到图中，图的拉普拉斯矩阵的特征向量，也可以作为<strong>图的傅里叶变换的基</strong>。</p>
+<script type="math/tex; mode=display">
+F\left(\lambda_{l}\right)=\hat{f}\left(\lambda_{l}\right)=\sum_{i=1}^{N} f(i) u_{l}^{*}(i) \\
+f(i)=\sum_{l=1}^{N} \hat{f}\left(\lambda_{l}\right) u_{l}(i)</script><p><strong>图矩阵到图频域的正变换:</strong></p>
+<script type="math/tex; mode=display">
+\begin{array}{c}
+F\left(\lambda_{l}\right)=\hat{f}\left(\lambda_{l}\right)=\sum_{i=1}^{N} f(i) u_{l}^{*}(i) \\
+\left(\begin{array}{c}
+\hat{f}\left(\lambda_{1}\right) \\
+\hat{f}\left(\lambda_{2}\right) \\
+\vdots \\
+\hat{f}\left(\lambda_{N}\right)
+\end{array}\right)=\left(\begin{array}{cccc}
+u_{1}(1) & u_{1}(2) & \ldots & u_{1}(N) \\
+u_{2}(1) & u_{2}(2) & \ldots & u_{2}(N) \\
+\vdots & \vdots & \ddots & \vdots \\
+u_{N}(1) & u_{N}(2) & \ldots & u_{N}(N)
+\end{array}\right)\left(\begin{array}{c}
+f(1) \\
+f(2) \\
+\vdots \\
+f(N)
+\end{array}\right) \\
+\hat{f}=U^{T} f
+\end{array}</script><p><strong>图频域到图矩阵的逆变换</strong>：</p>
+<script type="math/tex; mode=display">
+f(i)=\sum_{l=1}^{N} \hat{f}\left(\lambda_{l}\right) u_{l}(i) \\
+\left(\begin{array}{c}
+f(1) \\
+f(2) \\
+\vdots \\
+f(N)
+\end{array}\right)=\left(\begin{array}{cccc}
+u_{1}(1) & u_{2}(1) & \ldots & u_{N}(1) \\
+u_{1}(2) & u_{2}(2) & \ldots & u_{N}(2) \\
+\vdots & \vdots & \ddots & \vdots \\
+u_{1}(N) & u_{2}(N) & \ldots & u_{N}(N)
+\end{array}\right)\left(\begin{array}{c}
+\hat{f}\left(\lambda_{1}\right) \\
+\hat{f}\left(\lambda_{2}\right) \\
+\vdots \\
+\hat{f}\left(\lambda_{N}\right)
+\end{array}\right) \\
+f=U \hat{f}</script><h2 id="8-卷积定理"><a href="#8-卷积定理" class="headerlink" title="8.卷积定理"></a>8.卷积定理</h2><p><strong>定理内容:</strong></p>
+<script type="math/tex; mode=display">
+(f * h)_{G}=U\left(\begin{array}{lll}
+\hat{h}\left(\lambda_{1}\right) & & \\
+& \ddots & \\
+& & \hat{h}\left(\lambda_{n}\right)
+\end{array}\right) U^{T}f\longleftrightarrow  \quad(f * h)_{G}=U\left(\left(U^{T} h\right) \odot\left(U^{T} f\right)\right)</script><p><strong>证明：</strong><br>约定:</p>
+<script type="math/tex; mode=display">
+\begin{array}{l}
+f=\left(\begin{array}{c}
+f(1) \\
+f(2) \\
+\vdots \\
+f(n)
+\end{array}\right)  h=\left(\begin{array}{c}
+h(1) \\
+h(2) \\
+\vdots \\
+h(n)
+\end{array}\right) \hat{f}=\left(\begin{array}{c}
+\hat{f}\left(\lambda_{1}\right) \\
+\hat{f}\left(\lambda_{2}\right) \\
+\vdots \\
+\hat{f}\left(\lambda_{n}\right)
+\end{array}\right)\quad \hat{h}=\left(\begin{array}{c}
+\hat{h}\left(\lambda_{1}\right) \\
+\hat{h}\left(\lambda_{2}\right) \\
+\vdots  \\
+\hat{h}\left(\lambda_{n}\right)
+\end{array}\right) \\
+\hat{f}=U^{T} f \\
+\hat{g}=U^{T} g
+\end{array}</script><script type="math/tex; mode=display">
+\hat{f}\left(\lambda_{l}\right)=\sum_{i=1}^{N} f(i) u_{l}(i), \hat{h}\left(\lambda_{l}\right)=\sum_{i=1}^{N} h(i) u_{l}(i)</script><p>所以，可以得到:</p>
+<script type="math/tex; mode=display">
+\left(\begin{array}{ccc}
+\hat{h}\left(\lambda_{1}\right) & & \\
+& \ddots & \\
+& & \hat{h}\left(\lambda_{n}\right)
+\end{array}\right) U^{T} f=\left(\begin{array}{ccc}
+\hat{h}\left(\lambda_{1}\right) & & \\
+& \ddots & \\
+& & \hat{h}\left(\lambda_{n}\right)
+\end{array}\right) \cdot\left(\begin{array}{c}
+\hat{f}\left(\lambda_{1}\right) \\
+\hat{f}\left(\lambda_{2}\right) \\
+\vdots \\
+\hat{f}\left(\lambda_{n}\right)
+\end{array}\right)</script><script type="math/tex; mode=display">
+\left(\left(U^{T} h\right) \odot\left(U^{T} f\right)\right)=\left(\begin{array}{c}
+\hat{h}\left(\lambda_{1}\right) \\
+\hat{h}\left(\lambda_{2}\right) \\
+\vdots \\
+\hat{h}\left(\lambda_{n}\right)
+\end{array}\right) \odot\left(\begin{array}{c}
+\hat{f}\left(\lambda_{1}\right) \\
+\hat{f}\left(\lambda_{2}\right) \\
+\vdots \\
+\hat{f}\left(\lambda_{n}\right)
+\end{array}\right)</script><h2 id="9-图表示总结"><a href="#9-图表示总结" class="headerlink" title="9.图表示总结"></a>9.图表示总结</h2><p>Starting from signal processing:</p>
+<ul>
+<li>Recall that: The Laplacian is indeed diagonalized by the Fourier basis<br>(the orthonormal eigenvectors)$U=[u_1,u_2,\dots u_{N-1}]\in \mathbb{R}^{N\times N}$</li>
+<li>Let$\Lambda =\text{diag}([\lambda _0,\dots \lambda _{N-1} ]) $, then we have$L=U\Lambda U^T$</li>
+<li>recall that$ \mathcal{X} \otimes \mathcal{Y}=  Fourier  _{\text {inverse }}(  Fourier  (\mathcal{X}) \odot  Fourier  (\mathcal{Y})  ) $</li>
+<li>Definition of convolutional operator:$(f <em> h)(</em> \mathcal{G})=U\left(\left(U^{T} f\right) \odot\left(U^{T} h\right)\right)$</li>
+</ul>
+<p>Graph Laplacian another expression:</p>
+<script type="math/tex; mode=display">
+L=U\left[\begin{array}{cccc}
+\lambda_{0} & 0 & \cdots & 0 \\
+0 & \lambda_{1} & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & \lambda_{N-1}
+\end{array}\right] U^{-1}=U\left[\begin{array}{cccc}
+\lambda_{0} & 0 & \cdots & 0 \\
+0 & \lambda_{1} & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & \lambda_{N-1}
+\end{array}\right] U^{T}</script><p>where $\lambda_i$ is eigenvalue,and $U=(\overrightarrow{u_0} ,\overrightarrow{u_1},\dots \overrightarrow{u_N})  $，$\overrightarrow{u_i}$is column vector, and<br>is unit eigenvector，$U^{-1}$could be replaced by$U^T$，because$UU^T=I_N$,<strong>Fourier transformation could be expressed as:</strong></p>
+<script type="math/tex; mode=display">
+\hat{h}(L)=U\left[\begin{array}{cccc}
+\hat{h}\left(\lambda_{0}\right) & 0 & \cdots & 0 \\
+0 & \hat{h}\left(\lambda_{1}\right) & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & \hat{h}\left(\lambda_{N-1}\right)
+\end{array}\right] U^{T}, \quad f_{\text {out }}=\hat{h}(L) f_{\text {in }}</script><h2 id="10-三个经典图谱卷积模型"><a href="#10-三个经典图谱卷积模型" class="headerlink" title="10.三个经典图谱卷积模型"></a>10.三个经典图谱卷积模型</h2><p>简介</p>
+<ul>
+<li>三个图谱卷积模型（SCNN、ChebNet、GCN）均立足于谱图理论且一脉相承。</li>
+<li>ChebNet可看做SCNN的改进，GCN可看做ChebNet的改进。</li>
+<li>三个模型均可认为是下式的一个特例。</li>
+</ul>
+<script type="math/tex; mode=display">
+x \star_{G} g_{\theta}=U g_{\theta} U^{T} x=U\left(\begin{array}{crr}
+\hat{g}\left(\lambda_{1}\right) & & \\
+& \ddots & \\
+& & \hat{g}\left(\lambda_{n}\right)
+\end{array}\right)\left(\begin{array}{c}
+\hat{x}\left(\lambda_{1}\right) \\
+\hat{x}\left(\lambda_{2}\right) \\
+\vdots \\
+\hat{x}\left(\lambda_{n}\right)
+\end{array}\right)</script><h2 id="11-GCN卷积核1—SCNN"><a href="#11-GCN卷积核1—SCNN" class="headerlink" title="11.GCN卷积核1—SCNN"></a>11.GCN卷积核1—SCNN</h2><p>核心思想:用可学习的对角矩阵来代替谱域的卷积核，从而实现图卷积操作。</p>
+<p><strong>《Spectral Networks and Deep Locally Connected Networks on Graphs》的方法：</strong></p>
+<script type="math/tex; mode=display">
+\begin{array}{l}
+(f * h)_{G}=U\left(\begin{array}{lll}
+\hat{h}\left(\lambda_{1}\right) & & \\
+& \ddots & & \\
+& & \hat{h}\left(\lambda_{n}\right)
+\end{array}\right){U^{T} f} \Leftrightarrow \quad(f * h)_{G}=U\left(\left(U^{T} h\right) \odot\left(U^{T} f\right)\right) \quad \\y_{\text {output }}=\sigma\left(U g_{\theta}(\Lambda) U^{T} x\right)\ \ \ \ \ \ \ \ \ 
+g_{\theta}(\Lambda)=\left(\begin{array}{lll}
+\theta_{1} & & \\
+& \ddots & \\
+& & \theta_{n}
+\end{array}\right)
+\end{array}</script><ul>
+<li>计算复杂度高,计算复杂度为为$O(n^3)$n为节点个数。当处理大规模图数据时（比如社交网络数据，通常有上百万个节点）会面临很大的挑战。</li>
+<li>n个参数,计算复杂度为$O(n)$，当节点数较多时容易过拟合。</li>
+<li>无localization</li>
+</ul>
+<p>具体公式如下：</p>
+<script type="math/tex; mode=display">
+x_{k+1, j}=h\left(U \sum_{i=1}^{C_{k-1}} F_{k, i, j} U^{T} x_{k, i}\right)\left(j=1 \cdots C_{k}\right) \quad F_{k, i, j}=\left(\begin{array}{ccc}
+\theta_{1} & & \\
+& \ddots & \\
+& & \theta_{n}
+\end{array}\right)</script><ul>
+<li>其中，$C_k$表示第$k$层的channel通道个数，$x_{k,i}\in \mathbb{R}^n$表示第k层的第i个channel的feature map（特征图）</li>
+<li>$F_{k,i,j}\in \mathbb{R}^{n\times n}$代表参数化的谱域的卷积核矩阵。 它是一个对角矩阵，包含了$n$个可学习的参数。$h(.)$表示激活函数</li>
+<li>假设输入 channel 和输出channel 为 1。简化版本的SCNN卷积公式如下：$x_{k+1}=h\left(U F_{k} U^{T} x_{k}\right) \quad x_{k+1} \in \mathbb{R}^{n}, x_{k} \in \mathbb{R}^{n}$</li>
+</ul>
+<h2 id="12-GCN卷积核2"><a href="#12-GCN卷积核2" class="headerlink" title="12.GCN卷积核2"></a>12.GCN卷积核2</h2><p><strong>《Convolutional Neural Networks on Graphs with Fast Localized Spectral Filtering》的方法：</strong></p>
+<script type="math/tex; mode=display">
+(f * h)_{G}=U\left(\begin{array}{lll}
+\hat{h}\left(\lambda_{1}\right) & & \\
+& \ddots & & \\
+& & \hat{h}\left(\lambda_{n}\right)
+\end{array}\right) U^{T}f \Leftrightarrow\\(f * h)_{G}=U\left(\left(U^{T} h\right) \odot\left(U^{T} f\right)\right) \\ y_{\text {output }}=\sigma\left(U g_{\theta}(\Lambda) U^{T} x\right)\\
+g_{\theta}(\Lambda)=\left(\begin{array}{ccc}
+\sum_{j=0}^{K} \alpha_{j} \lambda_{1}^{j} & & \\
+& \ddots & \\
+& & \sum_{j=0}^{K} \alpha_{j} \lambda_{n}^{j}
+\end{array}\right)=\sum_{j=0}^{K} \alpha_{j} \Lambda^{j} \quad\\ y_{\text {output }}=\sigma\left(\sum_{j=0}^{K-1} \alpha_{j} L^{j} x\right)</script><p>无需对角化的证明:</p>
+<script type="math/tex; mode=display">
+U \sum_{j=0}^{K} \alpha_{j} \Lambda^{j} U^{T}=\sum_{j=0}^{K} \alpha_{j} U \Lambda^{j} U^{T}=\sum_{j=0}^{K} \alpha_{j} L^{j}\\
+L^{2}=U \Lambda U^{T} U \Lambda U^{T}=U \Lambda^{2} U^{T} \ \ \ \   \text{s.t.}  U^{T} U=E</script><ul>
+<li>无需特征分解</li>
+<li>K个参数&lt;n</li>
+<li>localization</li>
+</ul>
+<h2 id="13-GCN切比雪夫卷积核—ChebNet"><a href="#13-GCN切比雪夫卷积核—ChebNet" class="headerlink" title="13.GCN切比雪夫卷积核—ChebNet"></a>13.GCN切比雪夫卷积核—ChebNet</h2><p><strong>《Convolutional Neural Networks on Graphs with Fast Localized Spectral Filtering》的方法：</strong></p>
+<script type="math/tex; mode=display">
+\quad T_{k}(x)=\cos (k \cdot \arccos (x))\\
+g_{\theta}(\Lambda)=\sum_{k=0}^{K-1} \beta_{k} T_{k}(\tilde{\Lambda}) \\
+y=\sigma\left(U \sum_{k=0}^{K-1} \beta_{k} T_{k}(\tilde{\Lambda}) U^{T} x\right)\\</script><p>其中，由于切比雪夫多项式的定义域问题，进行归一化:$\tilde{\Lambda}=2\Lambda/\lambda_{max}-I$,将定义域变为$2\times[0,1]-1$，同理，$\tilde{L}=2L/\lambda_{max}-I$,，可以得到$y=\sigma\left(U \sum_{k=0}^{K-1} \beta_{k} T_{k}(U\tilde{\Lambda}U^{T})  x\right)$，或表示为$y=\sigma\left(U \sum_{k=0}^{K-1} \beta_{k} T_{k}(\tilde{L})  x\right)$,同时切比雪夫多项式满足递推公式：$T_k(\tilde{L})=2\tilde{L}T_{k-1}(\tilde{L})-T_{k-2}(\tilde{L})$,其中$T_0(\tilde{L})=I,T_1(\tilde{L})=\tilde{L}$</p>
+<p>【例】</p>
+<script type="math/tex; mode=display">y=\sigma\left(U \sum_{k=0}^{K-1} \beta_{k} T_{k}(\tilde{L})  x\right)</script><script type="math/tex; mode=display">
+T_k(\tilde{L})=2\tilde{L}T_{k-1}(\tilde{L})-T_{k-2}(\tilde{L})\\T_0(\tilde{L})=I,T_1(\tilde{L})=\tilde{L}</script><p>递推公式中第一项的卷积核：</p>
+<script type="math/tex; mode=display">
+\left[\begin{array}{cccccc}
+\beta_{0} & 0 & 0 & 0 & 0 & 0 \\
+0 & \beta_{0} & 0 & 0 & 0 & 0 \\
+0 & 0 & \beta_{0} & 0 & 0 & 0 \\
+0 & 0 & 0 & \beta_{0} & 0 & 0 \\
+0 & 0 & 0 & 0 & \beta_{0} & 0 \\
+0 & 0 & 0 & 0 & 0 & \beta_{0}
+\end{array}\right]</script><p>第二项的卷积核：其中$L^{sys}=I-D^{-0.5}AD^{-0.5}$</p>
+<script type="math/tex; mode=display">\left[\begin{array}{cccccc}
+\beta_{0}+0.07 \beta_{1} & -0.44 \beta_{1} & 0 & 0 & -0.44 \beta_{1} & 0 \\
+-0.44 \beta_{1} & \beta_{0}+0.07 \beta_{1} & -0.44 \beta_{1} & 0 & -0.36 \beta_{1} & 0 \\
+0 & -0.44 \beta_{1} & \beta_{0}+0.07 \beta_{1} & -0.44 \beta_{1} & 0 & 0 \\
+0 & 0 & -0.44 \beta_{1} & \beta_{0}+0.07 \beta_{1} & -0.36 \beta_{1} & -0.62 \beta_{1} \\
+-0.36 \beta_{1} & -0.36 \beta_{1} & 0 & -0.36 \beta_{1} & \beta_{0}+0.07 \beta_{1} & 0 \\
+0 & 0 & 0 & -0.62 \alpha_{1} & 0 & \beta_{0}+0.07 \beta_{1}
+\end{array}\right]</script><p><strong>特点</strong>：</p>
+<ul>
+<li><p>卷积核只有$k+1$个可学习的参数，一般 $k$远小于$n$，参数的复杂度被大大降低</p>
+</li>
+<li><p>采用Chebyshev多项式代替谱域的卷积核后，经过公示推导，ChebNet不需<br>要对拉普拉斯矩阵做特征分解了。省略了最耗时的步骤。</p>
+</li>
+<li><p>卷积核具有严格的空间局部性。同时，$k$就是卷积核的“感受野半径”。即将<br>中心顶点$k$阶近邻节点作为邻域节点。</p>
+</li>
+</ul>
+<h2 id="14-GCN卷积核简化-GCN"><a href="#14-GCN卷积核简化-GCN" class="headerlink" title="14.GCN卷积核简化-GCN"></a>14.GCN卷积核简化-GCN</h2><p>仅仅考虑一阶切比雪夫多项式。$T_{0}(\hat{L})=I \quad T_{1}(\hat{L})=\hat{L},\hat{L}=\frac{2}{\lambda_{\max }} L-I_{n},<br>\lambda_{\max }=2,L=I_{n}-D^{-1 / 2} W D^{-1 / 2}<br>$</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+x \star_{G} g_{\theta} &=\sum_{k=0}^{K} \beta_{k} T_{k}(\hat{L}) x=\sum_{k=0}^{1} \beta_{k} T_{k}(\hat{L}) x \\
+&=\beta_{0} T_{0}(\hat{L}) x+\beta_{1} T_{1}(\hat{L}) x \\
+&=\left(\beta_{0}+\beta_{1} \hat{L}\right) x \\
+&=\left(\beta_{0}+\beta_{1}\left(L-I_{n}\right)\right) x \\
+&=\left(\beta_{0}-\beta_{1}\left(D^{-1 / 2} W D^{-1 / 2}\right)\right) x
+\end{aligned}</script><p>进一步简化，使得每个卷积核只有一个可学习的参数。令$<br>\beta_{0}=-\beta_{1}=\theta$那么$<br> \quad x \star_{G} g_{\theta}=\left(\beta_{0}-\beta_{1}\left(D^{-1 / 2} W D^{-1 / 2}\right)\right) x=\left(\theta\left(D^{-1 / 2} W D^{-1 / 2}+I_{n}\right)\right) x<br>$</p>
+<p><strong>renormalization trick：</strong>因为$D^{-1 / 2} W D^{-1 / 2}+I_{n}$有范围[0,2]的特征值，如果在深度神经网络模型中使<br>用该算子，则反复应用该算子会导致数值不稳定（发散）和梯度爆炸/消失，<br>为了解决该问题, 引入了一个 renormalization trick</p>
+<script type="math/tex; mode=display">
+I_{n}+D^{-1 / 2} W D^{-1 / 2} \rightarrow \tilde{D}^{-1 / 2} \tilde{W} \tilde{D}^{-1 / 2} \\
+\tilde{W}=W+I_{n} \quad \tilde{D}_{i i}=\sum_{i} \tilde{W}_{i j}</script><p><strong>最终公式:</strong></p>
+<script type="math/tex; mode=display">
+x \star_{G} g_{\theta}=\theta\left(\tilde{D}^{-1 / 2} \tilde{W} \tilde{D}^{-1 / 2}\right) x</script><ul>
+<li>在忽略input channel 和 output channel的情况下，卷积核只有1个可学习<br>的参数，极大的减少了参数量。（按照作者的说法：“We intuitively expect that such a model can alleviate<br>the problem of overfitting on local neighborhood structures for graphs with very wide node degree distributions, such as<br>socialnetworks, citation networks, knowledge graphs and many other real-world graph datasets.”）</li>
+<li>虽然卷积核大小减少了（GCN仅仅关注于一阶邻域，类似于3X3的经典卷积），<br>但是作者认为通过多层堆叠GCN，仍然可以起到扩大感受野的作用。</li>
+<li>与此同时，这样极端的参数削减也受到一些人的质疑。他们认为每个<br>卷积核如果只设置一个可学习参数，会降低模型的能力。（可以参考博文<br>How powerful are Graph Convolutions? ）如果将传统图像的每一个像素视为graph的一个节点，节点之间为八邻域链接，图像也可以看做一张特殊的图。那么在每个3*3的卷<br>积核里，仅仅存在1个可学习的参数。从目前应用在image的深度学习经验看来，这样的卷积模型复杂度虽然低，但是模型的能力也遭到了削弱，可能难以处理复杂的任务。</li>
+</ul>
+
         </div>
 
         

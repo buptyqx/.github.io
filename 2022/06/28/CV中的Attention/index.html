@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ch">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="buptyqx">
+
+
+
+
+
+<title>1.CV中的Attention | buptyqx&#39;s BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">BUPTyqx&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">BUPTyqx&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">1.CV中的Attention</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">buptyqx</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">June 28, 2022&nbsp;&nbsp;21:50:24</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/CVBaseline/">CVBaseline</a>
+                            
+                        </span>
+                    
+	                
+    		            <span class="post-count">
+	                Words:
+    		            <a href="">2,808</a>  
+    		            </span>
+	                
+	                
+    		            <span class="post-count">
+	                Time:
+    		            <a href="">12min</a>  
+   	                    </span>
+	                 
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="CV中的Attention"><a href="#CV中的Attention" class="headerlink" title="CV中的Attention"></a>CV中的Attention</h1><blockquote>
+<p>【参考链接】</p>
+<p>本文以渣渣的熊猫潘老师的视频课为主体，参考了Bubbliiiing老师的课程中的代码讲解，同时在阅读了原论文后加入了一些自己的心得和体会，本人水平有限，在理解论文内容和两位老师的课程内容过程中，难免有所误解，欢迎交流指正。</p>
+<p>1.<a href="[(2条消息">神经网络学习小记录64——Pytorch 图像处理中注意力机制的解析与代码详解</a> 神经网络学习小记录64——Pytorch 图像处理中注意力机制的解析与代码详解_Bubbliiiing的学习小课堂-CSDN博客](<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44791964/article/details/121371986">https://blog.csdn.net/weixin_44791964/article/details/121371986</a>))</p>
+<p>2.<a href="[Pytorch 图像处理中注意力机制的代码详解与应用（Bubbliiiing 深度学习 教程）_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1rL4y1n7p3?spm_id_from=333.999.0.0">Pytorch 图像处理中注意力机制的代码详解与应用(Bubbliiiing 深度学习 教程)</a>)</p>
+<p>3.<a href="[渣渣的熊猫潘的个人空间_哔哩哔哩_bilibili](https://space.bilibili.com/2005599415/channel/seriesdetail?sid=500986&amp;ctype=0">b站up主 渣渣的熊猫潘 CV中的注意力机制</a>)</p>
+<p>4.<a href>全部论文汇总链接</a></p>
+</blockquote>
+<p>​        总的来说，注意力机制能够灵活的捕捉全局信息和局部信息之间的联系。它的目的就是让模型获得需要重点关注的目标区域，并对该部分投入更大的权重，突出显著有用特征，抑制和忽略无关特征。</p>
+<p><img src="/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/注意力机制思维导图.svg" alt="注意力机制思维导图"></p>
+<h2 id="1-通道域注意力机制"><a href="#1-通道域注意力机制" class="headerlink" title="1.通道域注意力机制"></a>1.通道域注意力机制</h2><h3 id="1-1-SENet"><a href="#1-1-SENet" class="headerlink" title="1.1 SENet"></a>1.1 SENet</h3>
+
+	<div class="row">
+    <embed src="1.SENet.pdf" width="100%" height="550" type="application/pdf">
+	</div>
+
+
+
+<p><strong>意义：</strong>较早的将attention引入CNN中，模块化设计</p>
+<blockquote>
+<p>CNN的主要作用: 通过系列卷积核提取特征。 </p>
+<p>对CNN的要求: 优秀的表征能力，但是<strong>局部操作有限。</strong></p>
+<p>感受野: 卷积神经网络每一层输出的特征图上的像素点对应输入图片上区域大小，似乎要的是<strong>全局信息。</strong></p>
+<p>增大感受野: 堆叠卷积层、增大卷积核、下采样、空洞卷积等。</p>
+</blockquote>
+<p><img src="/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/image-20220303105026825.png" alt="image-20220303105026825"></p>
+<p><strong>一个目的:</strong> 得到一个权重矩阵(<strong>核心</strong>)，对特征进行<strong>重构</strong>(它是一个可以用来衡量通道重要性的数值,上图中用不同颜色展示)</p>
+<p><strong>两个重要操作:</strong> Squeeze 和 Excitation</p>
+<p><strong>四步走:</strong> </p>
+<ul>
+<li><p><strong>Transformation</strong>$\mathbf{F}_{t r}$：给定一个input$X\in \mathbb{R} ^{H’\times W’\times C’}$，让其经过$\mathbf{F}_{t r}$做一次映射，得到一个output$U \in \mathbb{R} ^{H\times W\times C}$，即：$U=\mathbf{F}_{t r}(X)$。在传统的CNN中，这一步其实就是一个普通的卷积操作。但是，不同的网络可能有着不同的操作变换。</p>
+</li>
+<li><p><strong>Squeeze</strong>$\mathbf{F}_{s q}$：给定一个input：$U \in \mathbb{R} ^{H\times W\times C}$，让其经过$\mathbf{F}_{s q}$做一次变换，得到一个output：$Z\in \mathbb{R} ^{1\times 1\times C}$：</p>
+<script type="math/tex; mode=display">
+z_{c}=\mathbf{F}_{s q}\left(\mathbf{u}_{c}\right)=\frac{1}{H \times W} \sum_{i=1}^{H} \sum_{j=1}^{W} u_{c}(i, j)</script><p><strong>具体操作：采用全局平均池化(GAP)</strong>将每个通道上对应的空间信息$H\times W$压缩到对应通道中变为1个数值，此时1个像素表示一个通道，最终维度变为$1\times 1 \times C$，成了一个向量。</p>
+<p><strong>注释：</strong> 对$U$实现全局低维嵌入——将空间进行挤压，相当于拥有了全局感受野。</p>
+</li>
+<li><p><strong>Excitation</strong>$\mathbf{F}_{e x}$：给定一个input：$Z\in \mathbb{R} ^{1\times 1\times C}$，让其经过$\mathbf{F}_{e x}$得到一个output：$\mathbf{s}\in \mathbb{R} ^{1\times 1\times C}$</p>
+<script type="math/tex; mode=display">
+\mathbf{s}=\mathbf{F}_{e x}(\mathbf{z}, \mathbf{W})=\sigma(g(\mathbf{z}, \mathbf{W}))=\sigma\left(\mathbf{W}_{2} \delta\left(\mathbf{W}_{1} \mathbf{z}\right)\right)</script><p><strong>具体操作：</strong>将上一步得到的$Z$经过<strong>两个全连接层(bottleNeck)</strong>，对应上面的$\mathbf{W}_{1}$和$\mathbf{W}_{2}$ , 其中$\delta$是激活函数Relu，$\sigma$为激活函数sigmoid,最终得到的$\mathbf{s}$<strong>就是我们想得到的权重值</strong>。其中$\mathbf{W}_{1}\in \mathbb{R}^{\frac{C}{r}\times C}$，<script type="math/tex">\mathbf{W}_{2}\in \mathbb{R}^{C\times \frac{C}{r}}</script></p>
+</li>
+<li><p><strong>Scale</strong>$\mathbf{F}_{\text {scale }}$​：利用上一步得到的权重值，对原始的feature map进</p>
+<p>行操作，得到一个output$\widetilde{\mathbf{x}}_{c}\in \mathbb{R} ^{1\times 1\times C}$：</p>
+<script type="math/tex; mode=display">
+\widetilde{\mathbf{x}}_{c}=\mathbf{F}_{\text {scale }}\left(\mathbf{u}_{c}, s_{c}\right)=s_{c} \cdot \mathbf{u}_{c}</script><p><strong>具体操作：</strong>将得到的权重施加到$U$上面的每一个通道上。其实也就是对于$U$每个位置上的所有$H\times W$上的值都乘上对应通道的权值而已，完成了<strong>特征图的重校准</strong>。</p>
+</li>
+</ul>
+<p>应用：</p>
+<p><img src="/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/image-20220303111621428.png" alt="image-20220303111621428"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> math</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">se_block</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, channel, ratio=<span class="number">16</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(se_block, self).__init__()</span><br><span class="line">        self.avg_pool = nn.AdaptiveAvgPool2d(<span class="number">1</span>)</span><br><span class="line">        self.fc = nn.Sequential(</span><br><span class="line">                nn.Linear(channel, channel // ratio, bias=<span class="literal">False</span>),</span><br><span class="line">                nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">                nn.Linear(channel // ratio, channel, bias=<span class="literal">False</span>),</span><br><span class="line">                nn.Sigmoid()</span><br><span class="line">        )</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        b, c, _, _ = x.size()</span><br><span class="line">        y = self.avg_pool(x).view(b, c)</span><br><span class="line">        y = self.fc(y).view(b, c, <span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">return</span> x * y</span><br></pre></td></tr></table></figure>
+<h3 id="1-2-ECANet"><a href="#1-2-ECANet" class="headerlink" title="1.2 ECANet"></a>1.2 ECANet</h3>
+
+	<div class="row">
+    <embed src="2.ECANet.pdf" width="100%" height="550" type="application/pdf">
+	</div>
+
+
+
+<p>问题：SENet破坏了通道与注意力权重之间的关系。</p>
+<p>为了分析上述问题，作者设置了3个SENet的变体：<strong>SE-Var1、SE-Var2、SE-Var3。</strong></p>
+<p><strong>SE-Var1:</strong> 没有参数，但是<strong>性能优于Besiline，</strong>证明了通道注意力机制的确有效。（直接sigmod）</p>
+<p><strong>SE-Var2:</strong> C 个参数，但是<strong>性能优于SE，</strong>证明了通道与权重的直接连接很重要。</p>
+<p><strong>SE-Var3:</strong> $C^2$个参数，<strong>性能仍然优于SE，</strong>证明了单FC层的跨通道交互比维度削减效果好。</p>
+<p><img src="/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/image-20220303113047371.png" alt="image-20220303113047371"></p>
+<p><img src="/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/image-20220303113134500.png" alt="image-20220303113134500"></p>
+<p><strong>对角矩阵：</strong>$\mathbf{W}_{\operatorname{var} 2}$参数量少，但无通道交互。</p>
+<p><strong>全矩阵：</strong>$\mathbf{W}_{\operatorname{var} 3}$有跨通道交互，但参数量大 。</p>
+<script type="math/tex; mode=display">
+\mathbf{W}=\left\{\begin{array}{c}
+\mathbf{W}_{\operatorname{var} 2}=\left[\begin{array}{ccc}
+w^{1,1} & \cdots & 0 \\
+\vdots & \ddots & \vdots \\
+0 & \cdots & w^{C, C}
+\end{array}\right] \\
+\mathbf{W}_{\operatorname{var} 3}=\left[\begin{array}{ccc}
+w^{1,1} & \cdots & w^{1, C} \\
+\vdots & \ddots & \vdots \\
+w^{1, C} & \cdots & w^{C, C}
+\end{array}\right]
+\end{array}\right.</script><p>所以，可以综合$\mathbf{W}_{\operatorname{var} 2}$和$\mathbf{W}_{\operatorname{var} 3}$的优点，采用分组卷积$\mathbf{W}_{G}$（类似于线性代数中的分块矩阵的思想）</p>
+<script type="math/tex; mode=display">
+\mathbf{W}_{G}=\left[\begin{array}{ccc}
+\mathbf{W}_{G}^{1} & \cdots & \mathbf{0} \\
+\vdots & \ddots & \vdots \\
+\mathbf{0} & \cdots & \mathbf{W}_{G}^{G}
+\end{array}\right]</script><p>但是此时，分组卷积的组与组之间的交互消失了，所以效果并不好，所以作者提出了带状矩阵（参数量为$K\times C$，每行向后平移一个），此时同时保证了信息的交互和参数的减少（类似于一维卷积）</p>
+<script type="math/tex; mode=display">
+\mathbf{W}_{k}=\left[\begin{array}{cccccccc}
+w^{1,1} & \cdots & w^{1, k} & 0 & 0 & \cdots & \cdots & 0 \\
+0 & w^{2,2} & \cdots & w^{2, k+1} & 0 & \cdots & \cdots & 0 \\
+\vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots & \vdots \\
+0 & \cdots & 0 & 0 & \cdots & w^{C, C-k+1} & \cdots & w^{C, C}
+\end{array}\right]</script><p>卷积核大小$k$的确定：</p>
+<p>$k$和$C$之间应该存在某种对应关系，即：</p>
+<script type="math/tex; mode=display">
+C=\phi(k)=2^{(\gamma * k-b)}</script><p><strong>给定</strong>一个$C$,对应的$k$应该为：</p>
+<script type="math/tex; mode=display">
+k=\psi(C)=\left|\frac{\log _{2}(C)}{\gamma}+\frac{b}{\gamma}\right|_{o d d}</script><p><strong>其中</strong>：$r =2 ，b = 1$，$k$为计算出来临近的奇数值。</p>
+<p>具体网络结构如下：</p>
+<p><img src="/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/image-20220303114108389.png" alt="image-20220303114108389"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">eca_block</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, channel, b=<span class="number">1</span>, gamma=<span class="number">2</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(eca_block, self).__init__()</span><br><span class="line">        kernel_size = <span class="built_in">int</span>(<span class="built_in">abs</span>((math.log(channel, <span class="number">2</span>) + b) / gamma))</span><br><span class="line">        kernel_size = kernel_size <span class="keyword">if</span> kernel_size % <span class="number">2</span> <span class="keyword">else</span> kernel_size + <span class="number">1</span></span><br><span class="line">        self.avg_pool = nn.AdaptiveAvgPool2d(<span class="number">1</span>)</span><br><span class="line">        self.conv = nn.Conv1d(<span class="number">1</span>, <span class="number">1</span>, kernel_size=kernel_size, padding=(kernel_size - <span class="number">1</span>) // <span class="number">2</span>, bias=<span class="literal">False</span>) </span><br><span class="line">        self.sigmoid = nn.Sigmoid()</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        y = self.avg_pool(x)</span><br><span class="line">        y = self.conv(y.squeeze(-<span class="number">1</span>).transpose(-<span class="number">1</span>, -<span class="number">2</span>)).transpose(-<span class="number">1</span>, -<span class="number">2</span>).unsqueeze(-<span class="number">1</span>)</span><br><span class="line">        y = self.sigmoid(y)</span><br><span class="line">        <span class="keyword">return</span> x * y.expand_as(x)</span><br></pre></td></tr></table></figure>
+<h3 id="1-3-SKNet"><a href="#1-3-SKNet" class="headerlink" title="1.3 SKNet"></a>1.3 SKNet</h3>
+
+	<div class="row">
+    <embed src="3.SKNet.pdf" width="100%" height="550" type="application/pdf">
+	</div>
+
+
+
+<p><img src="/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/image-20220303120251364.png" alt="image-20220303120251364"></p>
+<p><strong>一个目的</strong>: 模拟自适应调整感受野——动态重组特征</p>
+<p><strong>重要细节</strong>: 维度变换、Softmax处</p>
+<p><strong>三步走</strong>: </p>
+<ul>
+<li><strong>Split</strong>：给定一个input，</li>
+<li><strong>Fuse</strong>：</li>
+<li><strong>Select</strong></li>
+</ul>
+<h2 id="2-混合注意力机制"><a href="#2-混合注意力机制" class="headerlink" title="2.混合注意力机制"></a>2.混合注意力机制</h2><p><strong>为什么混合？</strong></p>
+<p>不同的维度所代表的意义是不同的，它们本身所携带的信息也是不同的。</p>
+<ul>
+<li>对于通道而言多数是特征抽象的表达(What)</li>
+<li>对于空间而言所拥有的位置信息更为丰富(where)。</li>
+</ul>
+<h3 id="2-1-BAM"><a href="#2-1-BAM" class="headerlink" title="2.1 BAM"></a>2.1 BAM</h3>
+
+	<div class="row">
+    <embed src="4.BAM.pdf" width="100%" height="550" type="application/pdf">
+	</div>
+
+
+
+<p><img src="/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/image-20220303145205246.png" alt="image-20220303145205246"></p>
+<blockquote>
+<p>总体架构：</p>
+<ul>
+<li>给定一个input：$\mathbf{F} \in \mathbb{R} ^{H\times W\times C}$，经过一系列与注意力有关的操作（$\mathbf{M}$表示），可以得到一个注意力向量（Attention Vector），即：$\mathbf{F}\in\mathbb{R} ^{H\times W\times C}$</li>
+<li>上面的$\mathbf{M}$操作包括<strong>Channel</strong>和<strong>Spatial</strong>两部分：$\mathbf{M}(\mathbf{F})=\sigma\left(\mathbf{M}_{\mathbf{c}}(\mathbf{F})+\mathbf{M}_{\mathbf{s}}(\mathbf{F})\right)$</li>
+<li>用上述得到的注意力向量$\mathbf{M}(\mathbf{F})$对原特征图进行重构，即：$\mathbf{F}^{\prime}=\mathbf{F}+\mathbf{F} \otimes \mathbf{M}(\mathbf{F})$</li>
+</ul>
+</blockquote>
+<p><strong>一个目的:</strong> 生成混合域的<strong>注意力向量</strong>——<strong>对原特征进行重构</strong></p>
+<p><strong>三个分支:</strong> </p>
+<ul>
+<li><p><strong>Channel  branch</strong> ：给定一个input，对于$\mathbf{F} \in \mathbb{R} ^{H\times W\times C}$，经过通道注意力<strong>SEblock</strong>的操作，得到$\mathbf{M_c(F)} \in \mathbb{R} ^{C\times 1\times 1}$，具体的处理方式是：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\mathbf{M}_{\mathbf{c}}(\mathbf{F}) &=B N(\operatorname{MLP}(\operatorname{AvgPool}(\mathbf{F}))) \\
+&=B N\left(\mathbf{W}_{\mathbf{1}}\left(\mathbf{W}_{\mathbf{0}} \operatorname{Avg} \operatorname{Pool}(\mathbf{F})+\mathbf{b}_{\mathbf{0}}\right)+\mathbf{b}_{\mathbf{1}}\right)
+\end{aligned}</script><p>其中：$\mathbf{W}_{\mathbf{0}} \in \mathbb{R}^{C / r \times C}, \mathbf{b}_{\mathbf{0}} \in \mathbb{R}^{C / r}, \mathbf{W}_{\mathbf{1}} \in \mathbb{R}^{C \times C / r}, \mathbf{b}_{\mathbf{1}} \in \mathbb{R}^{C} $</p>
+</li>
+<li><p><strong>Spatial branch</strong>：给定一个input，对于$\mathbf{F} \in \mathbb{R} ^{H\times W\times C}$，,先进行降维,即经过$1<em>1$的卷积，然后通过两个$3</em>3$的空洞卷积，再通过$1*1$卷积，得到$\mathbf{M_s(F)} \in \mathbb{R} ^{1\times H\times W}$，具体描述如下：</p>
+<script type="math/tex; mode=display">
+\mathbf{M}_{\mathbf{s}}(\mathbf{F})=B N\left(f_{3}^{1 \times 1}\left(f_{2}^{3 \times 3}\left(f_{1}^{3 \times 3}\left(f_{0}^{1 \times 1}(\mathbf{F})\right)\right)\right)\right)</script><p>这里采用空洞卷积的目的是<strong>增大感受野</strong>，另外为了简单化,降维参数设为$C/r$</p>
+</li>
+<li><p><strong>Combine branch</strong>：前面已经提到了通道注意力$\mathbf{M_c(F)}$，空间注意力$\mathbf{M_s(F)}$，现在需要将二者联合起来生成最终的注意力特征图$\mathbf{M(F)}$，需要注意的是<strong>二者维度不同</strong>，需要都先调整为$\mathbb{R} ^{H\times W\times C}$再进行后续运算，具体操作为：</p>
+<script type="math/tex; mode=display">
+\mathbf{M}(\mathbf{F})=\sigma\left(\mathbf{M}_{\mathbf{c}}(\mathbf{F})+\mathbf{M}_{\mathbf{s}}(\mathbf{F})\right)\\
+\mathbf{F}^{\prime}=\mathbf{F}+\mathbf{F} \otimes \mathbf{M}(\mathbf{F})</script><p>常见的融合方法有三种: <strong>summation, multiplication, max operation</strong> 。</p>
+</li>
+</ul>
+<p><strong>重要细节:</strong> 不同分支的混合处、维度变换</p>
+<p>多BAM构建了一个<strong>层次化</strong>的注意力，和人类的感知过程很像。</p>
+<p><img src="/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/image-20220303150739456.png" alt="image-20220303150739456"></p>
+<h3 id="2-2-CBAM"><a href="#2-2-CBAM" class="headerlink" title="2.2 CBAM"></a>2.2 CBAM</h3>
+
+	<div class="row">
+    <embed src="5.CBAM.pdf" width="100%" height="550" type="application/pdf">
+	</div>
+
+
+
+<p><img src="/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/image-20220303155015829.png" alt="image-20220303155015829"></p>
+<ul>
+<li><p><strong>Channel  branch</strong> ：给定一个input，对于$\mathbf{F} \in \mathbb{R} ^{H\times W\times C}$，同时经过全局平均池化(<strong>GAP</strong>)和全局最大池化(<strong>GMP</strong>)操作,分别得到不同的空间语义描述算子，将二者通过一个<strong>共享感知机</strong>，随后将两个通道注意力特征向量使用相加方式进行融合，最后经过激活函数，得到通道注意力向量$\mathbf{M_c} \in \mathbb{R} ^{C\times 1\times 1}$，详细描述如下：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\mathbf{M}_{\mathbf{c}}(\mathbf{F}) &=\sigma(\operatorname{MLP}(\operatorname{AvgPool}(\mathbf{F}))+\operatorname{MLP}(\operatorname{MaxPool}(\mathbf{F}))) \\
+&=\sigma\left(\mathbf{W}_{\mathbf{1}}\left(\mathbf{W}_{\mathbf{0}}\left(\mathbf{F}_{\mathbf{a v g}}^{\mathbf{c}}\right)\right)+\mathbf{W}_{\mathbf{1}}\left(\mathbf{W}_{\mathbf{0}}\left(\mathbf{F}_{\mathbf{m a x}}^{\mathbf{c}}\right)\right)\right)
+\end{aligned}</script><p>其中，$\sigma$表示sigmod函数，$\mathbf{W}_{\mathbf{0}}\in\mathbb{R} ^{C/r\times C},\mathbf{W}_{\mathbf{1}}\in\mathbb{R} ^{C\times C/r}$，MLP是共享权重的。</p>
+</li>
+<li><p><strong>Spatial branch</strong> <strong>:</strong> 给定一个input，对于$\mathbf{F} \in \mathbb{R} ^{H\times W\times C}$，沿着<strong>通道维度</strong>同时经过全局平均池化(<strong>GAP</strong>)和全局最大池化(<strong>GMP</strong>)操作,分别得到两种不同的通道特征描述算子，将二者进行拼接，然后经过一个卷积核为$7*7$的卷积操作，再经过激活函数，最后得到空间注意力向量$\mathbf{M_s} \in \mathbb{R} ^{1\times H\times W}$，详细表述如下：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\mathbf{M}_{\mathbf{s}}(\mathbf{F}) &=\sigma\left(f^{7 \times 7}([\operatorname{AvgPool}(\mathbf{F}) ; \operatorname{MaxPool}(\mathbf{F})])\right) \\
+&=\sigma\left(f^{7 \times 7}\left(\left[\mathbf{F}_{\mathrm{avg}}^{\mathrm{s}} ; \mathbf{F}_{\max }^{\mathrm{s}}\right]\right)\right),
+\end{aligned}</script></li>
+<li><p>混合：</p>
+<ul>
+<li><strong>Parallel</strong> 并行：通道注意力特征图+空间注意力特征图= 混合混合注意力特征图对<strong>原特征图$F$</strong>进行校正。</li>
+<li><strong>Sequential</strong>串行：通道注意力特征图对原特征图$F$进行矫正=$F’$，空间注意力特征图对特征图$F’$再进行校正。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/image-20220303155948388.png" alt="image-20220303155948388"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ChannelAttention</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, in_planes, ratio=<span class="number">8</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(ChannelAttention, self).__init__()</span><br><span class="line">        self.avg_pool = nn.AdaptiveAvgPool2d(<span class="number">1</span>)</span><br><span class="line">        self.max_pool = nn.AdaptiveMaxPool2d(<span class="number">1</span>)</span><br><span class="line">        <span class="comment"># 利用1x1卷积代替全连接</span></span><br><span class="line">        self.fc1   = nn.Conv2d(in_planes, in_planes // ratio, <span class="number">1</span>, bias=<span class="literal">False</span>)</span><br><span class="line">        self.relu1 = nn.ReLU()</span><br><span class="line">        self.fc2   = nn.Conv2d(in_planes // ratio, in_planes, <span class="number">1</span>, bias=<span class="literal">False</span>)</span><br><span class="line">        self.sigmoid = nn.Sigmoid()</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        avg_out = self.fc2(self.relu1(self.fc1(self.avg_pool(x))))</span><br><span class="line">        max_out = self.fc2(self.relu1(self.fc1(self.max_pool(x))))</span><br><span class="line">        out = avg_out + max_out</span><br><span class="line">        <span class="keyword">return</span> self.sigmoid(out)</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">SpatialAttention</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, kernel_size=<span class="number">7</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(SpatialAttention, self).__init__()</span><br><span class="line">        <span class="keyword">assert</span> kernel_size <span class="keyword">in</span> (<span class="number">3</span>, <span class="number">7</span>), <span class="string">&#x27;kernel size must be 3 or 7&#x27;</span></span><br><span class="line">        padding = <span class="number">3</span> <span class="keyword">if</span> kernel_size == <span class="number">7</span> <span class="keyword">else</span> <span class="number">1</span></span><br><span class="line">        self.conv1 = nn.Conv2d(<span class="number">2</span>, <span class="number">1</span>, kernel_size, padding=padding, bias=<span class="literal">False</span>)</span><br><span class="line">        self.sigmoid = nn.Sigmoid()</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        avg_out = torch.mean(x, dim=<span class="number">1</span>, keepdim=<span class="literal">True</span>)</span><br><span class="line">        max_out, _ = torch.<span class="built_in">max</span>(x, dim=<span class="number">1</span>, keepdim=<span class="literal">True</span>)</span><br><span class="line">        x = torch.cat([avg_out, max_out], dim=<span class="number">1</span>)</span><br><span class="line">        x = self.conv1(x)</span><br><span class="line">        <span class="keyword">return</span> self.sigmoid(x)</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">cbam_block</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, channel, ratio=<span class="number">8</span>, kernel_size=<span class="number">7</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(cbam_block, self).__init__()</span><br><span class="line">        self.channelattention = ChannelAttention(channel, ratio=ratio)</span><br><span class="line">        self.spatialattention = SpatialAttention(kernel_size=kernel_size)</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = x * self.channelattention(x)</span><br><span class="line">        x = x * self.spatialattention(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>buptyqx</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="http://example.com/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/">http://example.com/2022/06/28/CV%E4%B8%AD%E7%9A%84Attention/</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/%E7%BC%96%E7%A8%8B/"># 编程</a>
+                    
+                        <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"># 深度学习</a>
+                    
+                        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"># 计算机视觉</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2022/06/28/GCN/">图卷积神经网络的半监督分类(GCN)</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© buptyqx | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"position":"left","width":180,"height":360},"mobile":{"show":true},"log":false});</script></body>
+
+</html>

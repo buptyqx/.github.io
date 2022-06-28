@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ch">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="buptyqx">
+
+
+
+
+
+<title>实用的工具--shell | buptyqx&#39;s BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">BUPTyqx&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">BUPTyqx&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">实用的工具--shell</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">buptyqx</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">June 28, 2022&nbsp;&nbsp;10:37:57</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7/">实用的工具</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="实用的工具–shell"><a href="#实用的工具–shell" class="headerlink" title="实用的工具–shell"></a>实用的工具–shell</h1><h2 id="shell基础操作"><a href="#shell基础操作" class="headerlink" title="shell基础操作"></a>shell基础操作</h2><p><strong>参考课程：</strong><a target="_blank" rel="noopener" href="https://www.youtube.com/playlist?list=PLyzOVJj3bHQuloKGG59rS43e29ro7I57J">Missing Semester IAP 2020</a>  Lecture 1: Course Overview + The Shell (2020)</p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628105449874.png" alt="image-20220628105449874"></p>
+<p>在这里，我们执行了程序，该程序打印当前日期和时间。</p>
+<p>我们还可以执行带有<strong>参数</strong>的命令：</p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628120939299.png" alt="image-20220628120939299"></p>
+<p>在本例中，我们告诉 shell 使用参数执行程序。该程序只是打印出其参数。</p>
+<p>shell 通过按空格拆分命令来解析命令，然后运行第一个单词指示的程序，将每个后续单词作为程序可以访问的参数提供。如果要提供包含空格或其他特殊字符的参数，则可以使用<code>()</code> 引用参数，或者仅使用<code>()</code> 转义相关字符。</p>
+<p>shell是一个编程环境，就像Python或Ruby一样，所以它有变量，条件，循环和函数。</p>
+<p>当在 shell 中运行命令时，实际上是在编写一小段代码，供 shell 解释。如果要求 shell 执行与其编程关键字之一不匹配的命令，它将查阅一个名为<strong>PATH的环境变量</strong>，该变量列出了在收到命令时 shell 应搜索哪些目录的程序：</p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628105521590.png" alt="image-20220628105521590"></p>
+<p>当我们运行该命令时，shell 看到它应该执行程序，然后在目录列表中搜索该名称的文件。当它找到它时，shell会运行它。</p>
+<p>我们可以使用该程序找出为给定程序名称执行的文件。我们还可以通过提供要执行的文件的<strong>路径</strong>来完全绕过。</p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628121403128.png" alt="image-20220628121403128"></p>
+<p>在Linux和macOS上，路径是文件系统的“根”。使用<code>pwd</code>命令可以显示当前位置。</p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628121457768.png" alt="image-20220628121457768"></p>
+<p>使用<code>..</code>和<code>.</code>检索<code>echo</code>指令，并使用检索出的指令输出结果：</p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628110239266.png" alt="image-20220628110239266"></p>
+<p>通常，当我们运行程序时，它将在当前目录中运行，除非我们另有说明。例如，它通常会在那里搜索文件，并在需要时在那里创建新文件。</p>
+<p>要查看给定目录中的内容，我们使用以下命令：<code>ls</code></p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628110858370.png" alt="image-20220628110858370"></p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628111154051.png" alt="image-20220628111154051"></p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628111239969.png" alt="image-20220628111239969"></p>
+<p>可以使用<code>--help</code>查询对应指令的使用帮助：</p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628111434655.png" alt="image-20220628111434655"></p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628113009178.png" alt="image-20220628113009178"></p>
+<ul>
+<li><code>mv</code>将文件进行移动（文件名可以重新修改，同时原文件会删除）</li>
+<li><code>cp</code>将文件进行复制移动（文件名可以重新修改，同时原文件不会删除）</li>
+<li><code>rm</code>将文件进行删除（需要满足对应权限）</li>
+</ul>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628112941489.png" alt="image-20220628112941489"></p>
+<ul>
+<li><code>mkdir</code>指令用于创建文件夹，可以看到在创建过程中，如果文件夹名称中有空格，则需要使用转义符，如果直接输入空格会默认表示创建两个文件夹。</li>
+</ul>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628113301679.png" alt="image-20220628113301679"></p>
+<p>一个快捷方式：<code>ctrl+L</code>可以清楚shell界面</p>
+<p>在 shell 中，程序有两个与之关联的主要“流”：它们的输入流和输出流。当程序尝试读取输入时，它会从输入流中读取，当它打印某些内容时，它会打印到其输出流。通常，程序的输入和输出都是您的终端。也就是说，键盘作为输入，屏幕作为输出。</p>
+<p>但是，<strong>我们也可以重新连接这些流！</strong></p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628114346774.png" alt="image-20220628114346774"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">missing:~$ echo hello &gt; hello.txt   #使用echo将hello输入hello.txt文件中</span><br><span class="line">missing:~$ cat hello.txt			#打印hello.txt中的内容</span><br><span class="line">hello</span><br><span class="line">missing:~$ cat &lt; hello.txt			#打印hello.txt中的内容</span><br><span class="line">hello</span><br><span class="line">missing:~$ cat &lt; hello.txt &gt; hello2.txt</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打印hello.txt中的内容到hello2.txt（覆盖打印，上面的截图中有证明这一点）</span></span><br><span class="line">missing:~$ cat hello2.txt</span><br><span class="line">hello</span><br><span class="line"></span><br><span class="line">missing:~$ cat &lt; hello.txt &gt;&gt; hello2.txt</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">使用&gt;&gt;不进行覆盖</span></span><br></pre></td></tr></table></figure>
+
+<p>这种输入&#x2F;输出重定向真正优秀的地方在于<strong>管道</strong>的使用。运算符<code>|</code>允许“链接”程序，使得一个程序的输出是另一个程序的输入：</p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628115018555.png" alt="image-20220628115018555"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ls -l / | tail -n1 &gt; ls.txt</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="built_in">ls</span> -l 显示文件的详细信息</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="built_in">tail</span> -n1 显示最后一行（通过管道链接）</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ls.txt 写入ls.txt文件中</span></span><br></pre></td></tr></table></figure>
+
+<p>另一个有趣的例子：</p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628115300810.png" alt="image-20220628115300810"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl --head --silent google.com | grep --ignore-case content-length | cut --delimiter=&#x27; &#x27; -f2</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">curl --<span class="built_in">head</span> --silent google.com:打印对应的HTTP头</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">grep --ignore-case content-length:搜索对应的字段</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="built_in">cut</span> --delimiter=<span class="string">&#x27; &#x27;</span> -f2:使用分隔符进行分割</span></span><br></pre></td></tr></table></figure>
+
+<p>在大多数类Unix系统上，一个用户是特殊的：<code>“root”</code>用户。您可能已经在上面的文件列表中看到了它。<code>root </code>用户高于所有访问限制，并且可以创建、读取、更新和删除系统中的任何文件。但是，您通常不会以root用户身份登录系统，因为不小心破坏某些东西太容易了。相反，您将使用该命令。顾名思义，它允许您<code>sudo</code>或者<code>su</code>做某些事情。当您收到权限被拒绝错误时，通常是因为您需要以root身份执行某些操作。虽然确保你首先仔细检查你真的想这样做！</p>
+<p> <code>/sys</code>将许多内核参数公开为文件，以便您可以轻松地动态重新配置内核，而无需专门的工具。</p>
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628115816599.png" alt="image-20220628115816599"></p>
+<p>例如，笔记本电脑屏幕的亮度通过名为<code>brightness</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/sys/class/backlight</span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">sudo find -L /sys/class/backlight -maxdepth 2 -name <span class="string">&#x27;*brightness*&#x27;</span></span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> /sys/class/backlight/thinkpad_screen</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">sudo <span class="built_in">echo</span> 3 &gt; brightness</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/image-20220628120218923.png" alt="image-20220628120218923"></p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>buptyqx</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="http://example.com/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/">http://example.com/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/%E5%B7%A5%E5%85%B7/"># 工具</a>
+                    
+                        <a href="/tags/%E7%BC%96%E7%A8%8B/"># 编程</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2022/06/27/%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%801--%E6%8E%92%E5%BA%8F%E4%BA%8C%E5%88%86/">算法基础1--排序 二分</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© buptyqx | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>

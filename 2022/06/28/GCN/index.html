@@ -13,7 +13,7 @@
 
 
 
-<title>GCN | buptyqx&#39;s BLOG</title>
+<title>图卷积神经网络的半监督分类(GCN) | buptyqx&#39;s BLOG</title>
 
 
 
@@ -235,7 +235,7 @@
     
     <article class="post-wrap">
         <header class="post-header">
-            <h1 class="post-title">GCN</h1>
+            <h1 class="post-title">图卷积神经网络的半监督分类(GCN)</h1>
             
                 <div class="post-meta">
                     
@@ -260,7 +260,7 @@
         </header>
 
         <div class="post-content">
-            <h1 id="Semi-Supervised-Classification-with-Graph-Convolutional-Networks图卷积神经网络的半监督分类-GCN"><a href="#Semi-Supervised-Classification-with-Graph-Convolutional-Networks图卷积神经网络的半监督分类-GCN" class="headerlink" title="Semi-Supervised Classification with Graph Convolutional Networks图卷积神经网络的半监督分类(GCN)"></a>Semi-Supervised Classification with Graph Convolutional Networks图卷积神经网络的半监督分类(GCN)</h1><h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1.背景"></a>1.背景</h2><p>图结构本身+节点特征<br><img src="/2022/06/28/GCN/559.png" alt="559"></p>
+            <h1 id="图卷积神经网络的半监督分类-GCN"><a href="#图卷积神经网络的半监督分类-GCN" class="headerlink" title="图卷积神经网络的半监督分类(GCN)"></a>图卷积神经网络的半监督分类(GCN)</h1><h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1.背景"></a>1.背景</h2><p>图结构本身+节点特征<br><img src="/2022/06/28/GCN/559.png" alt="559"></p>
 <p><img src="/2022/06/28/GCN/560.png" alt="560"><br><strong>四篇频域核心论文</strong></p>
 <ul>
 <li>ICLR 2014</li>
@@ -281,7 +281,8 @@
 <li>图神经网络的最重要模型之一</li>
 </ul>
 <h2 id="3-GCN结构"><a href="#3-GCN结构" class="headerlink" title="3.GCN结构"></a>3.GCN结构</h2><p><img src="/2022/06/28/GCN/567.png" alt="567"></p>
-<p><strong>模型框架</strong><br>$$<br>\hat{A}&#x3D;\tilde{D}^{-\frac{1}{2}} \tilde{A} \tilde{D}^{-\frac{1}{2}}\<br>Z&#x3D;f(X, A)&#x3D;\operatorname{softmax}\left(\hat{A} \operatorname{ReLU}\left(\hat{A} X W^{(0)}\right) W^{(1)}\right)\<br>\mathcal{L}&#x3D;-\sum_{l \in \mathcal{Y}<em>{L}} \sum</em>{f&#x3D;1}^{F} Y_{l f} \ln Z_{l f}<br>$$<br><img src="/2022/06/28/GCN/561.png" alt="561"></p>
+<p><strong>模型框架</strong><br>$$<br>\hat{A}&#x3D;\tilde{D}^{-\frac{1}{2}} \tilde{A} \tilde{D}^{-\frac{1}{2}}\<br>Z&#x3D;f(X, A)&#x3D;\operatorname{softmax}\left(\hat{A} \operatorname{ReLU}\left(\hat{A} X W^{(0)}\right) W^{(1)}\right)\<br>$$<br>$$<br>\mathcal{L}&#x3D;-\sum_{l \in \mathcal{Y}<em>{L}} \sum</em>{f&#x3D;1}^{F} Y_{l f} \ln Z_{l f}<br>$$</p>
+<p><img src="/2022/06/28/GCN/561.png" alt="561"></p>
 <p>Two major approaches to build Graph CNNs：</p>
 <ol>
 <li><strong>Spatial Domain:</strong><br>Perform convolution in spatial domain similar to images (euclidean data) with shareable weight parameters</li>

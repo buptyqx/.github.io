@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ch">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="buptyqx">
+
+
+
+
+
+<title>GCN | buptyqx&#39;s BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">BUPTyqx&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">BUPTyqx&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">GCN</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">buptyqx</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">June 28, 2022&nbsp;&nbsp;17:07:14</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/%E5%9B%BE%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">图神经网络</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="Semi-Supervised-Classification-with-Graph-Convolutional-Networks图卷积神经网络的半监督分类-GCN"><a href="#Semi-Supervised-Classification-with-Graph-Convolutional-Networks图卷积神经网络的半监督分类-GCN" class="headerlink" title="Semi-Supervised Classification with Graph Convolutional Networks图卷积神经网络的半监督分类(GCN)"></a>Semi-Supervised Classification with Graph Convolutional Networks图卷积神经网络的半监督分类(GCN)</h1><h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1.背景"></a>1.背景</h2><p>图结构本身+节点特征<br><img src="/2022/06/28/GCN/559.png" alt="559"></p>
+<p><img src="/2022/06/28/GCN/560.png" alt="560"><br><strong>四篇频域核心论文</strong></p>
+<ul>
+<li>ICLR 2014</li>
+<li>ChebyNet (NIPS 2016)</li>
+<li>PATCHY-SAN (ICML 2016)</li>
+<li>Graph Convolutional Network (ICLR 2017)</li>
+</ul>
+<h2 id="2-项目成果"><a href="#2-项目成果" class="headerlink" title="2.项目成果"></a>2.项目成果</h2><img src="/2022/06/28/GCN/uc-1656407379406">
+![563](GCN/563.png)
+
+<p><img src="/2022/06/28/GCN/564.png" alt="564"></p>
+<p>GCN意义</p>
+<ul>
+<li>卷积神经网络最常用的几个模型之一（GCN，GAT，GraphSAGE）</li>
+<li>将卷积算法直接用于处理图结构数据，频域分析与消息传播公式</li>
+<li>图频域卷积的局部一阶近似，单层的GCN处理图中一阶邻居上的信息，K层GCN处理K阶邻居</li>
+<li>卷积的参数共享，对于每个节点参数是共享的</li>
+<li>图神经网络的最重要模型之一</li>
+</ul>
+<h2 id="3-GCN结构"><a href="#3-GCN结构" class="headerlink" title="3.GCN结构"></a>3.GCN结构</h2><p><img src="/2022/06/28/GCN/567.png" alt="567"></p>
+<p><strong>模型框架</strong><br>$$<br>\hat{A}&#x3D;\tilde{D}^{-\frac{1}{2}} \tilde{A} \tilde{D}^{-\frac{1}{2}}\<br>Z&#x3D;f(X, A)&#x3D;\operatorname{softmax}\left(\hat{A} \operatorname{ReLU}\left(\hat{A} X W^{(0)}\right) W^{(1)}\right)\<br>\mathcal{L}&#x3D;-\sum_{l \in \mathcal{Y}<em>{L}} \sum</em>{f&#x3D;1}^{F} Y_{l f} \ln Z_{l f}<br>$$<br><img src="/2022/06/28/GCN/561.png" alt="561"></p>
+<p>Two major approaches to build Graph CNNs：</p>
+<ol>
+<li><strong>Spatial Domain:</strong><br>Perform convolution in spatial domain similar to images (euclidean data) with shareable weight parameters</li>
+<li><strong>Spectral Domain:</strong><br>Convert Graph data to spectral domain data by using the eigenvectors of laplacian operator on the graph data<br>and perform learning on the transformed data.</li>
+</ol>
+<p><strong>Graph CNN Summary</strong></p>
+<ul>
+<li>Spatial construction is usually more efficient but less principled.</li>
+<li>Spectral construction is more principled but usually slow. Computing Laplacian eigenvectors for large scale<br>data could be painful. </li>
+<li>Research tries to bridge the gap. (This paper GCN!)</li>
+</ul>
+<h2 id="4-RGCN"><a href="#4-RGCN" class="headerlink" title="4.RGCN"></a>4.RGCN</h2><p><img src="/2022/06/28/GCN/568.png" alt="568"></p>
+<ul>
+<li>$N_i^r$表示节点$i$的关系为$r$的邻居节点集合</li>
+<li>$c_{i,r}$是一个正则化常量，其中$c_{i,r}$的取值为$|N_i^r|$</li>
+<li>$W_r^{(l)}$是线性转化函数，将同类型边的邻居节点，使用用一个参数矩阵$W_r^{(l)}$进行转化。</li>
+</ul>
+<p>此公式与GCN不同的是，不同边类型所连接的邻居节点，进行一个线性转化，$W_r^{(l)}$的个数也就是边类型的个数，论文中称为relation-specific。当然此处还可以设置更加灵活的函数，例如多层神经网络。</p>
+<h2 id="5-拉普拉斯算子"><a href="#5-拉普拉斯算子" class="headerlink" title="5.拉普拉斯算子"></a>5.拉普拉斯算子</h2><p>laplacian算子简单的来说就是二阶导数：<br>$$<br>\Delta f(x)&#x3D;\lim _{h \rightarrow 0} \frac{f(x+h)-2 f(x)+f(x-h)}{h^{2}}<br>$$</p>
+<p>那在graph上，我们可以定义一阶导数为:<br>$$<br>f_{*g}’(x)&#x3D;f(x)-f(y)<br>$$</p>
+<p>其中y是x的邻居节点,那么对应的Laplacian算子可以定义为:<br>$$<br>\Delta_{* g} f^{\prime}(x)&#x3D;\Sigma_{y \sim x} f(x)-f(y)<br>$$</p>
+<p><strong>拉普拉斯算子：</strong> 拉普拉斯算子（Laplace Operator）是$n$维欧几里得空间中的一个二阶微分算子，定义为梯度<br>($\nabla f$)的散度$\nabla$：</p>
+<p>$$<br>\triangle f&#x3D; \nabla f^2&#x3D; \nabla \nabla f&#x3D;\text{div} (\text{grad}\ f )\<br>\Delta f&#x3D;\frac{\partial^{2} f}{\partial x^{2}}+\frac{\partial^{2} f}{\partial y^{2}}+\frac{\partial^{2} f}{\partial z^{2}} \<br>$$</p>
+<p>n维形式:</p>
+<p>$$<br>\Delta&#x3D;\sum_{i} \frac{\partial^{2}}{\partial x_{i}^{2}}<br>$$</p>
+<p>下面推导离散函数的导数：</p>
+<p>$$<br>\frac{\partial f}{\partial x}&#x3D;f^{\prime}(x)&#x3D;f(x+1)-f(x)\<br>\frac{\partial^{2} f}{\partial x^{2}}&#x3D;f^{\prime \prime}(x) \approx f^{\prime}(x)-f^{\prime}(x-1)&#x3D;f(x+1)+f(x-1)-2 f(x)<br>$$</p>
+<p>$$<br>\begin{align}<br>\Delta f &amp; &#x3D; \frac{\partial^{2} f}{\partial x^{2}}+\frac{\partial^{2} f}{\partial y^{2}}\ &amp; &#x3D; f(x+1, y)+f(x-1, y)-2 f(x, y)+f(x, y+1)+f(x, y-1)-2 f(x, y) \ &amp; &#x3D; f(x+1, y)+f(x-1, y)+f(x, y+1)+f(x, y-1)-4 f(x, y)<br>\end{align}<br>$$</p>
+<p>拉普拉斯矩阵:<br>$$<br>\Delta f_{i}&#x3D;\sum_{j \in N_{i}}\left(f_{i}-f_{j}\right)<br>$$<br>如果边$E_{ij}$具有权重$W_{ij}$时，则有：$\Delta f_{i}&#x3D;\sum_{j \in N_{i}} W_{i j}\left(f_{i}-f_{j}\right)$,由于当$W_{ij}&#x3D;0$时表示节点$i,j$不相邻，推导有：<br>$$<br>\Delta f_{i}&#x3D;\sum_{j \in N} w_{i j}\left(f_{i}-f_{j}\right) &#x3D;\sum_{j \in N} w_{i j} f_{i}-\sum_{j \in N} w_{i j} f_{j} &#x3D;d_{i} f_{i}-w_{i:} f<br>$$<br>其中$d_i&#x3D;\sum_{j\in N}w_{ij}$是顶点$i$的度。$w_{i:}&#x3D;\left(w_{i 1}, \ldots, w_{i N}\right)$是$N$维行向量，$\quad f&#x3D;\left(\begin{array}{c}<br>f_{1} \<br>\vdots \<br>f_{N}<br>\end{array}\right)$是$N$维列向量，$w_{i:}f$表示两个向量的内积，对于所有的$N$个节点有：<br>$$<br>\begin{array}{l}<br>\Delta f&#x3D;\left(\begin{array}{c}<br>\Delta f_{1} \<br>\vdots \<br>\Delta f_{N}<br>\end{array}\right)&#x3D;\left(\begin{array}{c}<br>d_{1} f_{1}-w_{1:} f \<br>\vdots \<br>d_{N} f_{N}-w_{N:} f<br>\end{array}\right)<br>\&#x3D;\left(\begin{array}{ccc}<br>d_{1} &amp; \cdots &amp; 0 \<br>\vdots &amp; \ddots &amp; \vdots \<br>0 &amp; \cdots &amp; d_{N}<br>\end{array}\right) f-\left(\begin{array}{c}<br>w_{1:} \<br>\vdots \<br>w_{N:}<br>\end{array}\right) f<br>\&#x3D;\operatorname{diag}\left(d_{i}\right) f-W f<br>&#x3D;(D-W) f<br>&#x3D;L f<br>\end{array}<br>$$</p>
+<p>所以:<br>$$<br>(L f)(i)&#x3D;\sum_{j \in \mathcal{N}<em>{i}} W</em>{i, j}[f(i)-f(j)]<br>$$</p>
+<h2 id="6-拉普拉斯矩阵"><a href="#6-拉普拉斯矩阵" class="headerlink" title="6.拉普拉斯矩阵"></a>6.拉普拉斯矩阵</h2><p><strong>拉普拉斯矩阵</strong></p>
+<p>对于具有$n$个节点的简单图$G&#x3D;(V,E)$,若其所有的边都是无向的，那个该图的拉普拉斯矩阵$\mathbf{L} \in \mathbb{R} ^{n\times n}$定义如下：</p>
+<p>$$<br>\mathbf{L}&#x3D;\mathbf{D}-\mathbf{A}<br>$$<br>矩阵的元素如下：<br>$$<br>L_{i j}&#x3D;\left{\begin{array}{ll}<br>d\left(v_{i}\right) &amp; (i&#x3D;j) \<br>-1 &amp; \left(\left(v_{i}, v_{j}\right) \in E \text { 且 } i \neq j\right) \<br>0 &amp; \text { (其他情况 })<br>\end{array}\right.<br>$$</p>
+<p><strong>对称归一化拉普拉斯矩阵</strong></p>
+<p>定义如下：<br>$$<br>\boldsymbol{L}^{\mathrm{sym}}&#x3D;\boldsymbol{D}^{-\frac{1}{2}} \boldsymbol{L} \boldsymbol{D}^{-\frac{1}{2}} &#x3D;\boldsymbol{I}-\boldsymbol{D}^{-\frac{1}{2}} \boldsymbol{A} \boldsymbol{D}^{-\frac{1}{2}} \<br>$$</p>
+<p>矩阵的元素如下：<br>$$<br>L_{i j}^{\mathrm{sym}}&#x3D;\left{\begin{array}{ll}<br>1 &amp; \left(i&#x3D;j \text { 且 } d\left(v_{i}\right) \neq 0\right) \<br>-\frac{1}{\sqrt{d\left(v_{i}\right) d\left(v_{j}\right)}} &amp; \left(\left(v_{i}, v_{j}\right) \in E \text { 且 } i \neq j\right) \<br>0 &amp; (\text { 其他情况 })<br>\end{array}\right.<br>$$</p>
+<p><strong>随机游走归一化拉普拉斯矩阵</strong></p>
+<p>定义如下：<br>$$<br>\boldsymbol{L}^{\mathbf{r w}}&#x3D;\boldsymbol{D}^{-1} \boldsymbol{L}&#x3D;\boldsymbol{I}-\boldsymbol{D}^{-1} \boldsymbol{A}<br>$$</p>
+<p>矩阵的元素如下：<br>$$<br>L_{i j}^{\mathrm{rw}}&#x3D;\left{\begin{array}{cl}<br>1 &amp; \left(i&#x3D;j \text { 且 } d\left(v_{i}\right) \neq 0\right) \<br>-\frac{1}{d\left(v_{i}\right)} &amp; \left(\left(v_{i}, v_{j}\right) \in E \text { 且 } i \neq j\right) \<br>0 &amp; \text { (其他情况 })<br>\end{array}\right.<br>$$</p>
+<p>性质：</p>
+<ul>
+<li>半正定性</li>
+</ul>
+<p>$$<br>f^{T} L f&#x3D;f^{T} D f-f^{T} W f&#x3D;\sum_{i&#x3D;1}^{n} d_{i} f_{i}^{2}-\sum_{i, j&#x3D;1}^{n} f_{i} f_{j} W_{i j} \<br>&#x3D;\frac{1}{2}\left(\sum_{i&#x3D;1}^{n} d_{i} f_{i}^{2}-2 \sum_{i, j&#x3D;1}^{n} f_{i} f_{j} W_{i j}+\sum_{j&#x3D;1}^{n} d_{j} f_{j}^{2}\right) \<br>&#x3D;\frac{1}{2}\left(\sum_{i, j&#x3D;1}^{n} W_{i j}\left(f_{i}-f_{j}\right)^{2}\right) \geq 0<br>$$</p>
+<ul>
+<li>$n$阶对称矩阵一定有$n$个线性无关的特征向量。</li>
+<li>对称矩阵的不同特征值对应的特征向量相互正交，这些正交的特征向量构成<br>的矩阵为正交矩阵。</li>
+<li>实对称矩阵的特征向量一定是实向量</li>
+<li>半正定矩阵的特征值一定非负。</li>
+<li>$n$阶对称矩阵一定有$n$个线性无关的特征向量（对称矩阵性质）。$n$维线性空间中的$n$个线性无关的向量都可以构成它的一组基（矩阵论知识）。拉普拉斯矩阵的$n$个特征向量是线性无关的，他们是$n$维空间中的一组基。</li>
+<li>对称矩阵的不同特征值对应的特征向量相互正交，这些正交的特征向量构成的矩阵为正交矩阵（对称矩阵性质）,拉普拉斯矩阵的$n$个特征向量是$n$维空间中的一组标准正交基。</li>
+</ul>
+<p>严谨的证明见《Discrete Regularization on Weighted Graphs for<br>Image and Mesh Filtering》这篇文章。其中定义了在图上如何做梯度运<br>算和散度运算。</p>
+<p><strong>特征向量基的性质</strong>：</p>
+<ul>
+<li><strong>拉普拉斯矩阵的特征值担任了和频率类似的位置</strong>。拉普拉斯的特征值都是非负的。且最小特征值为0。类似于经典傅里叶变换中的常数值（可视为频率为0）</li>
+<li><strong>拉普拉斯矩阵的特征向量担任了基函数的位置。</strong>0特征值对应一个常数特征向量,这个和经典傅里叶变换中的常数项类似。低特征值对应的特征向量比较平滑，高特征值对应的特征向量变换比较剧烈。两者对应于低频基函数和高频基函数。</li>
+<li><strong>通过定义图拉普拉斯二次型 (graph Laplacian quadratic form)来</strong>定义信号的平滑程度。其表示有边相连的两个节点信号的平方差乘以边的权重后求和。其值越小，代表信号$x$越平滑：$x^{T} L x&#x3D;1 &#x2F; 2 \sum_{i, j&#x3D;1}^{m} W_{i, j}(x(i)-x(j))^{2}$。当特征向量带入这个函数时,二次型的值等于特征值。这恰好是符合经典傅里叶变换中的频率<br>设定—-频率越高，基函数（余弦函数）变化越陡峭。</li>
+</ul>
+<h2 id="7-傅里叶变换"><a href="#7-傅里叶变换" class="headerlink" title="7.傅里叶变换"></a>7.傅里叶变换</h2><p>Convolution的数学定义是:<br>$$<br>(f*g)(t)&#x3D;\int_{\mathbb{R}}f(x)g(t-x)dx<br>$$</p>
+<p>一般称$g$为作用在$f$上的filter或kernel</p>
+<p>根据卷积定理，卷积公式还可以写成<br>$$<br>f*g&#x3D;\mathcal{F} ^{-1}{\mathcal{F} {f}\cdot\mathcal{F} {g}}<br>$$<br>这样我们只需要定义graph上的fourier变换，就可以定义出graph上的convolution变换。</p>
+<p><img src="/2022/06/28/GCN/v2-a340c2e24f4b8c580a4c5de5b3196190_b.webp"></p>
+<p>Fourier变换的定义:<br>$$<br>\mathcal{F}{f}(v)&#x3D;\int_{\mathbb{R}}f(x)e^{-2\pi i x v}dx<br>$$<br>Inverse Fourier变换则是:<br>$$<br>\mathcal{F}^{-1}{f}(x)&#x3D;\int_{\mathbb{R}}f(x)e^{2\pi i x v}dv<br>$$</p>
+<ul>
+<li>傅里叶反变换的本质是：把任意一个函数表示成了若干个正交基函数的线性组合。</li>
+<li>傅里叶正变换的本质是：求线性组合的的系数。具体做法是由原函数和基函数的<br>共轭的内积求得。</li>
+</ul>
+<p>$$<br>F(w)&#x3D;\sum_{t&#x3D;1}^{n} f(t) e^{-i \frac{2 \pi}{n} w t} \<br>f(t)&#x3D;\frac{1}{n} \sum_{w&#x3D;1}^{n} F(w) e^{i \frac{2 \pi}{n} w t}<br>$$</p>
+<p>根据特征值和特征向量的关系：<br>$$<br>\mathbf{A v}&#x3D;\lambda \mathbf{v}<br>$$<br>对$e^{-i \omega t}$做拉普拉斯算子：<br>$$<br>\Delta e^{-i \omega t}&#x3D;\frac{\partial^{2}}{\partial t^{2}} e^{-i \omega t}&#x3D;-\omega^{2} e^{-i \omega t}<br>$$<br>可以将$\Delta$比作特征值公式中的$\mathbf{A}$，将$-\omega^{2}$比作$\lambda$，可以完全对应特征值与特征向量的关系，即$e^{-i \omega t}$是拉普拉斯算子的特征向量。类比到图中，图的拉普拉斯矩阵的特征向量，也可以作为<strong>图的傅里叶变换的基</strong>。<br>$$<br>F\left(\lambda_{l}\right)&#x3D;\hat{f}\left(\lambda_{l}\right)&#x3D;\sum_{i&#x3D;1}^{N} f(i) u_{l}^{*}(i) \<br>f(i)&#x3D;\sum_{l&#x3D;1}^{N} \hat{f}\left(\lambda_{l}\right) u_{l}(i)<br>$$</p>
+<p><strong>图矩阵到图频域的正变换:</strong><br>$$<br>\begin{array}{c}<br>F\left(\lambda_{l}\right)&#x3D;\hat{f}\left(\lambda_{l}\right)&#x3D;\sum_{i&#x3D;1}^{N} f(i) u_{l}^{*}(i) \<br>\left(\begin{array}{c}<br>\hat{f}\left(\lambda_{1}\right) \<br>\hat{f}\left(\lambda_{2}\right) \<br>\vdots \<br>\hat{f}\left(\lambda_{N}\right)<br>\end{array}\right)&#x3D;\left(\begin{array}{cccc}<br>u_{1}(1) &amp; u_{1}(2) &amp; \ldots &amp; u_{1}(N) \<br>u_{2}(1) &amp; u_{2}(2) &amp; \ldots &amp; u_{2}(N) \<br>\vdots &amp; \vdots &amp; \ddots &amp; \vdots \<br>u_{N}(1) &amp; u_{N}(2) &amp; \ldots &amp; u_{N}(N)<br>\end{array}\right)\left(\begin{array}{c}<br>f(1) \<br>f(2) \<br>\vdots \<br>f(N)<br>\end{array}\right) \<br>\hat{f}&#x3D;U^{T} f<br>\end{array}<br>$$<br><strong>图频域到图矩阵的逆变换</strong>：<br>$$<br>f(i)&#x3D;\sum_{l&#x3D;1}^{N} \hat{f}\left(\lambda_{l}\right) u_{l}(i) \<br>\left(\begin{array}{c}<br>f(1) \<br>f(2) \<br>\vdots \<br>f(N)<br>\end{array}\right)&#x3D;\left(\begin{array}{cccc}<br>u_{1}(1) &amp; u_{2}(1) &amp; \ldots &amp; u_{N}(1) \<br>u_{1}(2) &amp; u_{2}(2) &amp; \ldots &amp; u_{N}(2) \<br>\vdots &amp; \vdots &amp; \ddots &amp; \vdots \<br>u_{1}(N) &amp; u_{2}(N) &amp; \ldots &amp; u_{N}(N)<br>\end{array}\right)\left(\begin{array}{c}<br>\hat{f}\left(\lambda_{1}\right) \<br>\hat{f}\left(\lambda_{2}\right) \<br>\vdots \<br>\hat{f}\left(\lambda_{N}\right)<br>\end{array}\right) \<br>f&#x3D;U \hat{f}<br>$$</p>
+<h2 id="8-卷积定理"><a href="#8-卷积定理" class="headerlink" title="8.卷积定理"></a>8.卷积定理</h2><p><strong>定理内容:</strong><br>$$<br>(f * h)<em>{G}&#x3D;U\left(\begin{array}{lll}<br>\hat{h}\left(\lambda</em>{1}\right) &amp; &amp; \<br>&amp; \ddots &amp; \<br>&amp; &amp; \hat{h}\left(\lambda_{n}\right)<br>\end{array}\right) U^{T}f\longleftrightarrow  \quad(f * h)<em>{G}&#x3D;U\left(\left(U^{T} h\right) \odot\left(U^{T} f\right)\right)<br>$$<br><strong>证明：</strong><br>约定:<br>$$<br>\begin{array}{l}<br>f&#x3D;\left(\begin{array}{c}<br>f(1) \<br>f(2) \<br>\vdots \<br>f(n)<br>\end{array}\right)  h&#x3D;\left(\begin{array}{c}<br>h(1) \<br>h(2) \<br>\vdots \<br>h(n)<br>\end{array}\right) \hat{f}&#x3D;\left(\begin{array}{c}<br>\hat{f}\left(\lambda</em>{1}\right) \<br>\hat{f}\left(\lambda_{2}\right) \<br>\vdots \<br>\hat{f}\left(\lambda_{n}\right)<br>\end{array}\right)\quad \hat{h}&#x3D;\left(\begin{array}{c}<br>\hat{h}\left(\lambda_{1}\right) \<br>\hat{h}\left(\lambda_{2}\right) \<br>\vdots  \<br>\hat{h}\left(\lambda_{n}\right)<br>\end{array}\right) \<br>\hat{f}&#x3D;U^{T} f \<br>\hat{g}&#x3D;U^{T} g<br>\end{array}<br>$$</p>
+<p>$$<br>\hat{f}\left(\lambda_{l}\right)&#x3D;\sum_{i&#x3D;1}^{N} f(i) u_{l}(i), \hat{h}\left(\lambda_{l}\right)&#x3D;\sum_{i&#x3D;1}^{N} h(i) u_{l}(i)<br>$$</p>
+<p>所以，可以得到:<br>$$<br>\left(\begin{array}{ccc}<br>\hat{h}\left(\lambda_{1}\right) &amp; &amp; \<br>&amp; \ddots &amp; \<br>&amp; &amp; \hat{h}\left(\lambda_{n}\right)<br>\end{array}\right) U^{T} f&#x3D;\left(\begin{array}{ccc}<br>\hat{h}\left(\lambda_{1}\right) &amp; &amp; \<br>&amp; \ddots &amp; \<br>&amp; &amp; \hat{h}\left(\lambda_{n}\right)<br>\end{array}\right) \cdot\left(\begin{array}{c}<br>\hat{f}\left(\lambda_{1}\right) \<br>\hat{f}\left(\lambda_{2}\right) \<br>\vdots \<br>\hat{f}\left(\lambda_{n}\right)<br>\end{array}\right)<br>$$</p>
+<p>$$<br>\left(\left(U^{T} h\right) \odot\left(U^{T} f\right)\right)&#x3D;\left(\begin{array}{c}<br>\hat{h}\left(\lambda_{1}\right) \<br>\hat{h}\left(\lambda_{2}\right) \<br>\vdots \<br>\hat{h}\left(\lambda_{n}\right)<br>\end{array}\right) \odot\left(\begin{array}{c}<br>\hat{f}\left(\lambda_{1}\right) \<br>\hat{f}\left(\lambda_{2}\right) \<br>\vdots \<br>\hat{f}\left(\lambda_{n}\right)<br>\end{array}\right)<br>$$</p>
+<h2 id="9-图表示总结"><a href="#9-图表示总结" class="headerlink" title="9.图表示总结"></a>9.图表示总结</h2><p>Starting from signal processing:</p>
+<ul>
+<li>Recall that: The Laplacian is indeed diagonalized by the Fourier basis<br>(the orthonormal eigenvectors)$U&#x3D;[u_1,u_2,\dots u_{N-1}]\in \mathbb{R}^{N\times N}$</li>
+<li>Let$\Lambda &#x3D;\text{diag}([\lambda _0,\dots \lambda _{N-1} ]) $, then we have$L&#x3D;U\Lambda U^T$</li>
+<li>recall that$ \mathcal{X} \otimes \mathcal{Y}&#x3D;  Fourier  _{\text {inverse }}(  Fourier  (\mathcal{X}) \odot  Fourier  (\mathcal{Y})  ) $</li>
+<li>Definition of convolutional operator:$(f * h)(* \mathcal{G})&#x3D;U\left(\left(U^{T} f\right) \odot\left(U^{T} h\right)\right)$</li>
+</ul>
+<p>Graph Laplacian another expression:<br>$$<br>L&#x3D;U\left[\begin{array}{cccc}<br>\lambda_{0} &amp; 0 &amp; \cdots &amp; 0 \<br>0 &amp; \lambda_{1} &amp; \cdots &amp; 0 \<br>\vdots &amp; \vdots &amp; \ddots &amp; \vdots \<br>0 &amp; 0 &amp; \cdots &amp; \lambda_{N-1}<br>\end{array}\right] U^{-1}&#x3D;U\left[\begin{array}{cccc}<br>\lambda_{0} &amp; 0 &amp; \cdots &amp; 0 \<br>0 &amp; \lambda_{1} &amp; \cdots &amp; 0 \<br>\vdots &amp; \vdots &amp; \ddots &amp; \vdots \<br>0 &amp; 0 &amp; \cdots &amp; \lambda_{N-1}<br>\end{array}\right] U^{T}<br>$$<br>where $\lambda_i$ is eigenvalue,and $U&#x3D;(\overrightarrow{u_0} ,\overrightarrow{u_1},\dots \overrightarrow{u_N})  $，$\overrightarrow{u_i}$is column vector, and<br>is unit eigenvector，$U^{-1}$could be replaced by$U^T$，because$UU^T&#x3D;I_N$,<strong>Fourier transformation could be expressed as:</strong><br>$$<br>\hat{h}(L)&#x3D;U\left[\begin{array}{cccc}<br>\hat{h}\left(\lambda_{0}\right) &amp; 0 &amp; \cdots &amp; 0 \<br>0 &amp; \hat{h}\left(\lambda_{1}\right) &amp; \cdots &amp; 0 \<br>\vdots &amp; \vdots &amp; \ddots &amp; \vdots \<br>0 &amp; 0 &amp; \cdots &amp; \hat{h}\left(\lambda_{N-1}\right)<br>\end{array}\right] U^{T}, \quad f_{\text {out }}&#x3D;\hat{h}(L) f_{\text {in }}<br>$$</p>
+<h2 id="10-三个经典图谱卷积模型"><a href="#10-三个经典图谱卷积模型" class="headerlink" title="10.三个经典图谱卷积模型"></a>10.三个经典图谱卷积模型</h2><p>简介</p>
+<ul>
+<li>三个图谱卷积模型（SCNN、ChebNet、GCN）均立足于谱图理论且一脉相承。</li>
+<li>ChebNet可看做SCNN的改进，GCN可看做ChebNet的改进。</li>
+<li>三个模型均可认为是下式的一个特例。</li>
+</ul>
+<p>$$<br>x \star_{G} g_{\theta}&#x3D;U g_{\theta} U^{T} x&#x3D;U\left(\begin{array}{crr}<br>\hat{g}\left(\lambda_{1}\right) &amp; &amp; \<br>&amp; \ddots &amp; \<br>&amp; &amp; \hat{g}\left(\lambda_{n}\right)<br>\end{array}\right)\left(\begin{array}{c}<br>\hat{x}\left(\lambda_{1}\right) \<br>\hat{x}\left(\lambda_{2}\right) \<br>\vdots \<br>\hat{x}\left(\lambda_{n}\right)<br>\end{array}\right)<br>$$</p>
+<h2 id="11-GCN卷积核1–SCNN"><a href="#11-GCN卷积核1–SCNN" class="headerlink" title="11.GCN卷积核1–SCNN"></a>11.GCN卷积核1–SCNN</h2><p>核心思想:用可学习的对角矩阵来代替谱域的卷积核，从而实现图卷积操作。</p>
+<p><strong>《Spectral Networks and Deep Locally Connected Networks on Graphs》的方法：</strong><br>$$<br>\begin{array}{l}<br>(f * h)<em>{G}&#x3D;U\left(\begin{array}{lll}<br>\hat{h}\left(\lambda</em>{1}\right) &amp; &amp; \<br>&amp; \ddots &amp; &amp; \<br>&amp; &amp; \hat{h}\left(\lambda_{n}\right)<br>\end{array}\right){U^{T} f} \Leftrightarrow \quad(f * h)<em>{G}&#x3D;U\left(\left(U^{T} h\right) \odot\left(U^{T} f\right)\right) \quad \y</em>{\text {output }}&#x3D;\sigma\left(U g_{\theta}(\Lambda) U^{T} x\right)\ \ \ \ \ \ \ \ \<br>g_{\theta}(\Lambda)&#x3D;\left(\begin{array}{lll}<br>\theta_{1} &amp; &amp; \<br>&amp; \ddots &amp; \<br>&amp; &amp; \theta_{n}<br>\end{array}\right)<br>\end{array}<br>$$</p>
+<ul>
+<li>计算复杂度高,计算复杂度为为$O(n^3)$n为节点个数。当处理大规模图数据时（比如社交网络数据，通常有上百万个节点）会面临很大的挑战。</li>
+<li>n个参数,计算复杂度为$O(n)$，当节点数较多时容易过拟合。</li>
+<li>无localization</li>
+</ul>
+<p>具体公式如下：<br>$$<br>x_{k+1, j}&#x3D;h\left(U \sum_{i&#x3D;1}^{C_{k-1}} F_{k, i, j} U^{T} x_{k, i}\right)\left(j&#x3D;1 \cdots C_{k}\right) \quad F_{k, i, j}&#x3D;\left(\begin{array}{ccc}<br>\theta_{1} &amp; &amp; \<br>&amp; \ddots &amp; \<br>&amp; &amp; \theta_{n}<br>\end{array}\right)<br>$$</p>
+<ul>
+<li>其中，$C_k$表示第$k$层的channel通道个数，$x_{k,i}\in \mathbb{R}^n$表示第k层的第i个channel的feature map（特征图）</li>
+<li>$F_{k,i,j}\in \mathbb{R}^{n\times n}$代表参数化的谱域的卷积核矩阵。 它是一个对角矩阵，包含了$n$个可学习的参数。$h(.)$表示激活函数</li>
+<li>假设输入 channel 和输出channel 为 1。简化版本的SCNN卷积公式如下：$x_{k+1}&#x3D;h\left(U F_{k} U^{T} x_{k}\right) \quad x_{k+1} \in \mathbb{R}^{n}, x_{k} \in \mathbb{R}^{n}$</li>
+</ul>
+<h2 id="12-GCN卷积核2"><a href="#12-GCN卷积核2" class="headerlink" title="12.GCN卷积核2"></a>12.GCN卷积核2</h2><p><strong>《Convolutional Neural Networks on Graphs with Fast Localized Spectral Filtering》的方法：</strong><br>$$<br>(f * h)<em>{G}&#x3D;U\left(\begin{array}{lll}<br>\hat{h}\left(\lambda</em>{1}\right) &amp; &amp; \<br>&amp; \ddots &amp; &amp; \<br>&amp; &amp; \hat{h}\left(\lambda_{n}\right)<br>\end{array}\right) U^{T}f \Leftrightarrow\(f * h)<em>{G}&#x3D;U\left(\left(U^{T} h\right) \odot\left(U^{T} f\right)\right) \ y</em>{\text {output }}&#x3D;\sigma\left(U g_{\theta}(\Lambda) U^{T} x\right)\<br>g_{\theta}(\Lambda)&#x3D;\left(\begin{array}{ccc}<br>\sum_{j&#x3D;0}^{K} \alpha_{j} \lambda_{1}^{j} &amp; &amp; \<br>&amp; \ddots &amp; \<br>&amp; &amp; \sum_{j&#x3D;0}^{K} \alpha_{j} \lambda_{n}^{j}<br>\end{array}\right)&#x3D;\sum_{j&#x3D;0}^{K} \alpha_{j} \Lambda^{j} \quad\ y_{\text {output }}&#x3D;\sigma\left(\sum_{j&#x3D;0}^{K-1} \alpha_{j} L^{j} x\right)<br>$$<br>无需对角化的证明:<br>$$<br>U \sum_{j&#x3D;0}^{K} \alpha_{j} \Lambda^{j} U^{T}&#x3D;\sum_{j&#x3D;0}^{K} \alpha_{j} U \Lambda^{j} U^{T}&#x3D;\sum_{j&#x3D;0}^{K} \alpha_{j} L^{j}\<br>L^{2}&#x3D;U \Lambda U^{T} U \Lambda U^{T}&#x3D;U \Lambda^{2} U^{T} \ \ \ \   \text{s.t.}  U^{T} U&#x3D;E<br>$$</p>
+<ul>
+<li>无需特征分解</li>
+<li>K个参数&lt;n</li>
+<li>localization</li>
+</ul>
+<h2 id="13-GCN切比雪夫卷积核–ChebNet"><a href="#13-GCN切比雪夫卷积核–ChebNet" class="headerlink" title="13.GCN切比雪夫卷积核–ChebNet"></a>13.GCN切比雪夫卷积核–ChebNet</h2><p><strong>《Convolutional Neural Networks on Graphs with Fast Localized Spectral Filtering》的方法：</strong><br>$$<br>\quad T_{k}(x)&#x3D;\cos (k \cdot \arccos (x))\<br>g_{\theta}(\Lambda)&#x3D;\sum_{k&#x3D;0}^{K-1} \beta_{k} T_{k}(\tilde{\Lambda}) \<br>y&#x3D;\sigma\left(U \sum_{k&#x3D;0}^{K-1} \beta_{k} T_{k}(\tilde{\Lambda}) U^{T} x\right)\<br>$$<br>其中，由于切比雪夫多项式的定义域问题，进行归一化:$\tilde{\Lambda}&#x3D;2\Lambda&#x2F;\lambda_{max}-I$,将定义域变为$2\times[0,1]-1$，同理，$\tilde{L}&#x3D;2L&#x2F;\lambda_{max}-I$,，可以得到$y&#x3D;\sigma\left(U \sum_{k&#x3D;0}^{K-1} \beta_{k} T_{k}(U\tilde{\Lambda}U^{T})  x\right)$，或表示为$y&#x3D;\sigma\left(U \sum_{k&#x3D;0}^{K-1} \beta_{k} T_{k}(\tilde{L})  x\right)$,同时切比雪夫多项式满足递推公式：$T_k(\tilde{L})&#x3D;2\tilde{L}T_{k-1}(\tilde{L})-T_{k-2}(\tilde{L})$,其中$T_0(\tilde{L})&#x3D;I,T_1(\tilde{L})&#x3D;\tilde{L}$</p>
+<p>【例】<br>$$y&#x3D;\sigma\left(U \sum_{k&#x3D;0}^{K-1} \beta_{k} T_{k}(\tilde{L})  x\right)$$<br>$$<br>T_k(\tilde{L})&#x3D;2\tilde{L}T_{k-1}(\tilde{L})-T_{k-2}(\tilde{L})\T_0(\tilde{L})&#x3D;I,T_1(\tilde{L})&#x3D;\tilde{L}<br>$$<br>递推公式中第一项的卷积核：<br>$$<br>\left[\begin{array}{cccccc}<br>\beta_{0} &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \<br>0 &amp; \beta_{0} &amp; 0 &amp; 0 &amp; 0 &amp; 0 \<br>0 &amp; 0 &amp; \beta_{0} &amp; 0 &amp; 0 &amp; 0 \<br>0 &amp; 0 &amp; 0 &amp; \beta_{0} &amp; 0 &amp; 0 \<br>0 &amp; 0 &amp; 0 &amp; 0 &amp; \beta_{0} &amp; 0 \<br>0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; \beta_{0}<br>\end{array}\right]<br>$$<br>第二项的卷积核：其中$L^{sys}&#x3D;I-D^{-0.5}AD^{-0.5}$<br>$$\left[\begin{array}{cccccc}<br>\beta_{0}+0.07 \beta_{1} &amp; -0.44 \beta_{1} &amp; 0 &amp; 0 &amp; -0.44 \beta_{1} &amp; 0 \<br>-0.44 \beta_{1} &amp; \beta_{0}+0.07 \beta_{1} &amp; -0.44 \beta_{1} &amp; 0 &amp; -0.36 \beta_{1} &amp; 0 \<br>0 &amp; -0.44 \beta_{1} &amp; \beta_{0}+0.07 \beta_{1} &amp; -0.44 \beta_{1} &amp; 0 &amp; 0 \<br>0 &amp; 0 &amp; -0.44 \beta_{1} &amp; \beta_{0}+0.07 \beta_{1} &amp; -0.36 \beta_{1} &amp; -0.62 \beta_{1} \<br>-0.36 \beta_{1} &amp; -0.36 \beta_{1} &amp; 0 &amp; -0.36 \beta_{1} &amp; \beta_{0}+0.07 \beta_{1} &amp; 0 \<br>0 &amp; 0 &amp; 0 &amp; -0.62 \alpha_{1} &amp; 0 &amp; \beta_{0}+0.07 \beta_{1}<br>\end{array}\right]$$</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><p>卷积核只有$k+1$个可学习的参数，一般 $k$远小于$n$，参数的复杂度被大大降低</p>
+</li>
+<li><p>采用Chebyshev多项式代替谱域的卷积核后，经过公示推导，ChebNet不需<br>要对拉普拉斯矩阵做特征分解了。省略了最耗时的步骤。</p>
+</li>
+<li><p>卷积核具有严格的空间局部性。同时，$k$就是卷积核的“感受野半径”。即将<br>中心顶点$k$阶近邻节点作为邻域节点。</p>
+</li>
+</ul>
+<h2 id="14-GCN卷积核简化-GCN"><a href="#14-GCN卷积核简化-GCN" class="headerlink" title="14.GCN卷积核简化-GCN"></a>14.GCN卷积核简化-GCN</h2><p>仅仅考虑一阶切比雪夫多项式。$T_{0}(\hat{L})&#x3D;I \quad T_{1}(\hat{L})&#x3D;\hat{L},\hat{L}&#x3D;\frac{2}{\lambda_{\max }} L-I_{n},<br>\lambda_{\max }&#x3D;2,L&#x3D;I_{n}-D^{-1 &#x2F; 2} W D^{-1 &#x2F; 2}<br>$<br>$$<br>\begin{aligned}<br>x \star_{G} g_{\theta} &amp;&#x3D;\sum_{k&#x3D;0}^{K} \beta_{k} T_{k}(\hat{L}) x&#x3D;\sum_{k&#x3D;0}^{1} \beta_{k} T_{k}(\hat{L}) x \<br>&amp;&#x3D;\beta_{0} T_{0}(\hat{L}) x+\beta_{1} T_{1}(\hat{L}) x \<br>&amp;&#x3D;\left(\beta_{0}+\beta_{1} \hat{L}\right) x \<br>&amp;&#x3D;\left(\beta_{0}+\beta_{1}\left(L-I_{n}\right)\right) x \<br>&amp;&#x3D;\left(\beta_{0}-\beta_{1}\left(D^{-1 &#x2F; 2} W D^{-1 &#x2F; 2}\right)\right) x<br>\end{aligned}<br>$$<br>进一步简化，使得每个卷积核只有一个可学习的参数。令$<br>\beta_{0}&#x3D;-\beta_{1}&#x3D;\theta$那么$<br> \quad x \star_{G} g_{\theta}&#x3D;\left(\beta_{0}-\beta_{1}\left(D^{-1 &#x2F; 2} W D^{-1 &#x2F; 2}\right)\right) x&#x3D;\left(\theta\left(D^{-1 &#x2F; 2} W D^{-1 &#x2F; 2}+I_{n}\right)\right) x<br>$</p>
+<p><strong>renormalization trick：</strong>因为$D^{-1 &#x2F; 2} W D^{-1 &#x2F; 2}+I_{n}$有范围[0,2]的特征值，如果在深度神经网络模型中使<br>用该算子，则反复应用该算子会导致数值不稳定（发散）和梯度爆炸&#x2F;消失，<br>为了解决该问题, 引入了一个 renormalization trick<br>$$<br>I_{n}+D^{-1 &#x2F; 2} W D^{-1 &#x2F; 2} \rightarrow \tilde{D}^{-1 &#x2F; 2} \tilde{W} \tilde{D}^{-1 &#x2F; 2} \<br>\tilde{W}&#x3D;W+I_{n} \quad \tilde{D}<em>{i i}&#x3D;\sum</em>{i} \tilde{W}<em>{i j}<br>$$<br><strong>最终公式:</strong><br>$$<br>x \star</em>{G} g_{\theta}&#x3D;\theta\left(\tilde{D}^{-1 &#x2F; 2} \tilde{W} \tilde{D}^{-1 &#x2F; 2}\right) x<br>$$</p>
+<ul>
+<li>在忽略input channel 和 output channel的情况下，卷积核只有1个可学习<br>的参数，极大的减少了参数量。（按照作者的说法：“We intuitively expect that such a model can alleviate<br>the problem of overfitting on local neighborhood structures for graphs with very wide node degree distributions, such as<br>socialnetworks, citation networks, knowledge graphs and many other real-world graph datasets.”）</li>
+<li>虽然卷积核大小减少了（GCN仅仅关注于一阶邻域，类似于3X3的经典卷积），<br>但是作者认为通过多层堆叠GCN，仍然可以起到扩大感受野的作用。</li>
+<li>与此同时，这样极端的参数削减也受到一些人的质疑。他们认为每个<br>卷积核如果只设置一个可学习参数，会降低模型的能力。（可以参考博文<br>How powerful are Graph Convolutions? ）如果将传统图像的每一个像素视为graph的一个节点，节点之间为八邻域链接，图像也可以看做一张特殊的图。那么在每个3*3的卷<br>积核里，仅仅存在1个可学习的参数。从目前应用在image的深度学习经验看来，这样的卷积模型复杂度虽然低，但是模型的能力也遭到了削弱，可能难以处理复杂的任务。</li>
+</ul>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>buptyqx</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="http://example.com/2022/06/28/GCN/">http://example.com/2022/06/28/GCN/</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/%E7%BC%96%E7%A8%8B/"># 编程</a>
+                    
+                        <a href="/tags/%E5%9B%BE%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"># 图神经网络</a>
+                    
+                        <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"># 深度学习</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2022/06/28/%E5%AE%9E%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7-shell/">实用的工具--shell</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© buptyqx | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>

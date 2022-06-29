@@ -41,6 +41,45 @@
     
     
         
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
     
 
 
@@ -127,6 +166,71 @@
                 <div class="container">
     
     
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
 
     
     <article class="post-wrap">
@@ -144,16 +248,23 @@
                         </span>
                     
                     
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF/">pytorch日积月累</a>
+                            
+                        </span>
+                    
 	                
     		            <span class="post-count">
 	                Words:
-    		            <a href="">0</a>  
+    		            <a href="">2,353</a>  
     		            </span>
 	                
 	                
     		            <span class="post-count">
 	                Time:
-    		            <a href="">1min</a>  
+    		            <a href="">11min</a>  
    	                    </span>
 	                 
                 </div>
@@ -161,7 +272,150 @@
         </header>
 
         <div class="post-content">
-            
+            <h1 id="pytorch日积月累7-模型建立"><a href="#pytorch日积月累7-模型建立" class="headerlink" title="pytorch日积月累7-模型建立"></a>pytorch日积月累7-模型建立</h1><h2 id="1-1模型创建"><a href="#1-1模型创建" class="headerlink" title="1.1模型创建"></a>1.1模型创建</h2><p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20200821000850537.png" alt="image-20200821000850537" style="zoom:67%;"></p>
+<p>LeNet的计算图：（运算示意图）</p>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20200821001133588.png" alt="image-20200821001133588">模型创建步骤：</p>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20200821001535720.png" alt="image-20200821001535720" style="zoom:80%;"></p>
+<h2 id="1-2torch-nn"><a href="#1-2torch-nn" class="headerlink" title="1.2torch.nn"></a>1.2torch.nn</h2><p><code>torch.nn</code>中包含以下四个主要部分：</p>
+<ul>
+<li><p><code>nn.Parameter</code>：张量子类，表示可学习参数，如weight, bias</p>
+</li>
+<li><p><code>nn.Module</code>：所有网络层基类，管理网络属性</p>
+</li>
+<li><p><code>nn.functional</code>：函数具体实现，如卷积，池化，激活函数等</p>
+</li>
+<li><p><code>nn.init</code>：参数初始化方法</p>
+</li>
+</ul>
+<p>nn.Module中的八个字典：</p>
+<p>• <code>parameters</code> : 存储管理nn.Parameter类 </p>
+<p>• <code>modules</code> : 存储管理nn.Module类 </p>
+<p>• <code>buffers</code>：存储管理缓冲属性，如BN层中的<code>running_mean</code></p>
+<p>• <code>***_hooks</code>：存储管理钩子函数</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">self._parameters = OrderedDict()</span><br><span class="line">self._buffers = OrderedDict()</span><br><span class="line">self._backward_hooks = OrderedDict()</span><br><span class="line">self._forward_hooks = OrderedDict()</span><br><span class="line">self._forward_pre_hooks = OrderedDict()</span><br><span class="line">self._state_dict_hooks = OrderedDict()</span><br><span class="line">self._load_state_dict_pre_hooks = OrderedDict()</span><br><span class="line">self._modules = OrderedDict()</span><br></pre></td></tr></table></figure>
+<p><code>nn.Module</code>总结</p>
+<ul>
+<li>一个module可以包含多个子module</li>
+<li>一个module相当于一个运算，必须实现forward()函数</li>
+<li>每个module都有8个字典管理它的属性</li>
+</ul>
+<h2 id="1-3模型容器Containers"><a href="#1-3模型容器Containers" class="headerlink" title="1.3模型容器Containers"></a>1.3模型容器Containers</h2><p>模型容器Containers包含以下三个部分：</p>
+<ul>
+<li><code>nn.Sequetial</code> 按顺序包装多个网络层</li>
+<li><code>nn.ModuleDict</code> 像python的dict一样包装多个网络层</li>
+<li><code>nn.ModuleList</code> 像python的list一样包装多个网络层</li>
+</ul>
+<h3 id="1-3-1-Sequential容器"><a href="#1-3-1-Sequential容器" class="headerlink" title="1.3.1 Sequential容器"></a>1.3.1 Sequential容器</h3><p><strong>Sequetial容器</strong></p>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20200821003042378.png" alt="image-20200821003042378" style="zoom:80%;"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LeNetSequential</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, classes</span>):</span><br><span class="line">        <span class="built_in">super</span>(LeNetSequential, self).__init__()</span><br><span class="line">        </span><br><span class="line">        self.features = nn.Sequential(</span><br><span class="line">            nn.Conv2d(<span class="number">3</span>, <span class="number">6</span>, <span class="number">5</span>),</span><br><span class="line">            nn.ReLU(),</span><br><span class="line">            nn.MaxPool2d(kernel_size=<span class="number">2</span>, stride=<span class="number">2</span>),</span><br><span class="line">            nn.Conv2d(<span class="number">6</span>, <span class="number">16</span>, <span class="number">5</span>),</span><br><span class="line">            nn.ReLU(),</span><br><span class="line">            nn.MaxPool2d(kernel_size=<span class="number">2</span>, stride=<span class="number">2</span>),</span><br><span class="line">        )</span><br><span class="line">        </span><br><span class="line">        self.classifier = nn.Sequential(</span><br><span class="line">            nn.Linear(<span class="number">16</span>*<span class="number">5</span>*<span class="number">5</span>, <span class="number">120</span>),</span><br><span class="line">            nn.ReLU(),</span><br><span class="line">            nn.Linear(<span class="number">120</span>, <span class="number">84</span>),</span><br><span class="line">            nn.ReLU(),</span><br><span class="line">            nn.Linear(<span class="number">84</span>, classes),</span><br><span class="line">        )</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = self.features(x) <span class="comment">#直接使用self.features(x)就可以实现六层的反向传播</span></span><br><span class="line">        x = x.view(x.size()[<span class="number">0</span>], -<span class="number">1</span>)</span><br><span class="line">        x = self.classifier(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20220630013935931.png" alt="image-20220630013935931"></p>
+<p>注意这种情况下每一层的输出都是按照序号来索引的，但是如果神经网络的层数很多的时候，这样的数字索引并不方便，所以采用下面的这种字典名称索引的方法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> OrderedDict</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LeNetSequentialOrderDict</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, classes</span>):</span><br><span class="line">        <span class="built_in">super</span>(LeNetSequentialOrderDict, self).__init__()</span><br><span class="line">        self.features = nn.Sequential(OrderedDict(&#123;</span><br><span class="line">            <span class="string">&#x27;conv1&#x27;</span>: nn.Conv2d(<span class="number">3</span>, <span class="number">6</span>, <span class="number">5</span>),</span><br><span class="line">            <span class="string">&#x27;relu1&#x27;</span>: nn.ReLU(),</span><br><span class="line">            <span class="string">&#x27;pool1&#x27;</span>: nn.MaxPool2d(kernel_size=<span class="number">2</span>, stride=<span class="number">2</span>),</span><br><span class="line">            <span class="string">&#x27;conv2&#x27;</span>: nn.Conv2d(<span class="number">6</span>, <span class="number">16</span>, <span class="number">5</span>),</span><br><span class="line">            <span class="string">&#x27;relu2&#x27;</span>: nn.ReLU(),</span><br><span class="line">            <span class="string">&#x27;pool2&#x27;</span>: nn.MaxPool2d(kernel_size=<span class="number">2</span>, stride=<span class="number">2</span>),</span><br><span class="line">        &#125;))</span><br><span class="line">        self.classifier = nn.Sequential(OrderedDict(&#123;</span><br><span class="line">            <span class="string">&#x27;fc1&#x27;</span>:   nn.Linear(<span class="number">16</span>*<span class="number">5</span>*<span class="number">5</span>, <span class="number">120</span>),</span><br><span class="line">            <span class="string">&#x27;relu3&#x27;</span>: nn.ReLU(),</span><br><span class="line">            <span class="string">&#x27;fc2&#x27;</span>:   nn.Linear(<span class="number">120</span>, <span class="number">84</span>),</span><br><span class="line">            <span class="string">&#x27;relu4&#x27;</span>: nn.ReLU(),</span><br><span class="line">            <span class="string">&#x27;fc3&#x27;</span>:   nn.Linear(<span class="number">84</span>, classes),</span><br><span class="line">        &#125;))</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = self.features(x)</span><br><span class="line">        x = x.view(x.size()[<span class="number">0</span>], -<span class="number">1</span>)</span><br><span class="line">        x = self.classifier(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20220630013955470.png" alt="image-20220630013955470"></p>
+<p><code>nn.Sequential</code> 是<code>nn.module</code>的容器，用于<strong>按顺序包装一组网络层</strong></p>
+<p>• 顺序性<strong>：各网络层之间严格按照顺序构建</strong></p>
+<p>• 自带<code>forward()</code>：<strong>自带的forward里，通过for循环依次执行前向传播运算</strong></p>
+<h3 id="1-3-2-ModuleList容器"><a href="#1-3-2-ModuleList容器" class="headerlink" title="1.3.2 ModuleList容器"></a>1.3.2 ModuleList容器</h3><p><code>nn.ModuleList</code>是<code>nn.module</code>的容器，用于包装一组网络层，以<strong>迭代方式调用网络层</strong></p>
+<p>主要方法：</p>
+<p>• <code>append()</code>：<strong>在ModuleList后面添加网络层</strong></p>
+<p>• <code>extend()</code>：拼接<strong>两个ModuleList</strong></p>
+<p>• <code>insert()</code>：<strong>指定在ModuleList中位置插入网络层</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ModuleList</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>(ModuleList, self).__init__()</span><br><span class="line">        self.linears = nn.ModuleList([nn.Linear(<span class="number">10</span>, <span class="number">10</span>) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">20</span>)])</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        <span class="keyword">for</span> i, linear <span class="keyword">in</span> <span class="built_in">enumerate</span>(self.linears):</span><br><span class="line">            x = linear(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20220630014022419.png" alt="image-20220630014022419"></p>
+<h3 id="1-3-3-ModuleDict容器"><a href="#1-3-3-ModuleDict容器" class="headerlink" title="1.3.3 ModuleDict容器"></a>1.3.3 ModuleDict容器</h3><p>是<code>nn.module</code>的容器，用于包装一组网络层，以索引方式调用网络层</p>
+<p>主要方法：</p>
+<p>• <code>clear()</code>：<strong>清空ModuleDict</strong></p>
+<p>• <code>items()</code>：<strong>返回可迭代的键值对(key-value pairs)</strong></p>
+<p>• <code>keys()</code>：<strong>返回字典的键(key)</strong></p>
+<p>• <code>values()</code>：<strong>返回字典的值(value)</strong></p>
+<p>• <code>pop()</code>：<strong>返回一对键值，并从字典中删除</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ModuleDict</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>(ModuleDict, self).__init__()</span><br><span class="line">        self.choices = nn.ModuleDict(&#123;</span><br><span class="line">            <span class="string">&#x27;conv&#x27;</span>: nn.Conv2d(<span class="number">10</span>, <span class="number">10</span>, <span class="number">3</span>),</span><br><span class="line">            <span class="string">&#x27;pool&#x27;</span>: nn.MaxPool2d(<span class="number">3</span>)</span><br><span class="line">        &#125;)</span><br><span class="line">        self.activations = nn.ModuleDict(&#123;</span><br><span class="line">            <span class="string">&#x27;relu&#x27;</span>: nn.ReLU(),</span><br><span class="line">            <span class="string">&#x27;prelu&#x27;</span>: nn.PReLU()</span><br><span class="line">        &#125;)</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x, choice, act</span>):</span><br><span class="line">        x = self.choices[choice](x)</span><br><span class="line">        x = self.activations[act](x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20220630014056894.png" alt="image-20220630014056894"></p>
+<blockquote>
+<p><strong>总结：</strong></p>
+<ul>
+<li>nn.Sequential：<strong>顺序性，各网络层之间严格按顺序执行，常用于block构建</strong></li>
+<li>nn.ModuleList：<strong>迭代性，常用于大量重复网构建，通过for循环实现重复构建</strong></li>
+<li>nn.ModuleDict：<strong>索引性，常用于可选择的网络层</strong></li>
+</ul>
+</blockquote>
+<h2 id="1-4AlexNet构建"><a href="#1-4AlexNet构建" class="headerlink" title="1.4AlexNet构建"></a>1.4AlexNet构建</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torchvision</span><br><span class="line">alexnet = torchvision.models.AlexNet()<span class="comment">#AlexNet源码如下</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20220630014141191.png" alt="image-20220630014141191"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">AlexNet</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, num_classes=<span class="number">1000</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(AlexNet, self).__init__()</span><br><span class="line">        self.features = nn.Sequential(</span><br><span class="line">            nn.Conv2d(<span class="number">3</span>, <span class="number">64</span>, kernel_size=<span class="number">11</span>, stride=<span class="number">4</span>, padding=<span class="number">2</span>),</span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">            nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>),</span><br><span class="line">            nn.Conv2d(<span class="number">64</span>, <span class="number">192</span>, kernel_size=<span class="number">5</span>, padding=<span class="number">2</span>),</span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">            nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>),</span><br><span class="line">            nn.Conv2d(<span class="number">192</span>, <span class="number">384</span>, kernel_size=<span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">            nn.Conv2d(<span class="number">384</span>, <span class="number">256</span>, kernel_size=<span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">            nn.Conv2d(<span class="number">256</span>, <span class="number">256</span>, kernel_size=<span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">            nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>),</span><br><span class="line">        )</span><br><span class="line">        self.avgpool = nn.AdaptiveAvgPool2d((<span class="number">6</span>, <span class="number">6</span>))</span><br><span class="line">        self.classifier = nn.Sequential(</span><br><span class="line">            nn.Dropout(),</span><br><span class="line">            nn.Linear(<span class="number">256</span> * <span class="number">6</span> * <span class="number">6</span>, <span class="number">4096</span>),</span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">            nn.Dropout(),</span><br><span class="line">            nn.Linear(<span class="number">4096</span>, <span class="number">4096</span>),</span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">            nn.Linear(<span class="number">4096</span>, num_classes),</span><br><span class="line">        )</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = self.features(x)</span><br><span class="line">        x = self.avgpool(x)</span><br><span class="line">        x = torch.flatten(x, <span class="number">1</span>)</span><br><span class="line">        x = self.classifier(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<h2 id="1-5卷积层"><a href="#1-5卷积层" class="headerlink" title="1.5卷积层"></a>1.5卷积层</h2><h3 id="1-5-1-1d-2d-3d-Convolution"><a href="#1-5-1-1d-2d-3d-Convolution" class="headerlink" title="1.5.1 1d/2d/3d Convolution"></a>1.5.1 1d/2d/3d Convolution</h3><p><strong>卷积运算</strong>：卷积核在输入信号（图像）上滑动，相应位置上进行<strong>乘加</strong></p>
+<p><strong>卷积核</strong>：又称为滤波器，过滤器，可认为是某种模式，某种特征。</p>
+<p>卷积过程类似于用一个模版去图像上寻找与它相似的区域，与卷积核模式越相似，激活值越高，从而实现特征提取。</p>
+<p>卷积维度：<strong>一般情况下，卷积核在几个维度上滑动，</strong>就是几维卷积。</p>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20200821101541790.png" alt="image-20200821101541790" style="zoom: 80%;"></p>
+<h3 id="1-5-2-nn-Conv2d"><a href="#1-5-2-nn-Conv2d" class="headerlink" title="1.5.2 nn.Conv2d"></a>1.5.2 nn.Conv2d</h3><ul>
+<li>功能：对多个二维信号进行二维卷积</li>
+<li>主要参数：</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">nn.Conv2d(in_channels,      <span class="comment">#输入通道数</span></span><br><span class="line">          out_channels,     <span class="comment">#输出通道数，等价于卷积核个数</span></span><br><span class="line">          kernel_size,      <span class="comment">#卷积核尺寸</span></span><br><span class="line">          stride=<span class="number">1</span>,         <span class="comment">#步长</span></span><br><span class="line">          padding=<span class="number">0</span>,        <span class="comment">#填充个数,保证输入输出图像尺寸不变</span></span><br><span class="line">          dilation=<span class="number">1</span>,       <span class="comment">#空洞卷积大小,卷积中有空格</span></span><br><span class="line">          groups=<span class="number">1</span>,         <span class="comment">#分组卷积设置,常用于轻量化网络</span></span><br><span class="line">          bias=<span class="literal">True</span>,        <span class="comment">#偏置</span></span><br><span class="line">          padding_mode=<span class="string">&#x27;zeros&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>尺寸计算：</p>
+<ul>
+<li>简化版（！！！）</li>
+</ul>
+<script type="math/tex; mode=display">
+\text{out}_{s i z e}=\frac{\text{In}_{\text {size}}-\text {kernelsize}}{\text {stride}}+1</script><ul>
+<li>完整版：</li>
+</ul>
+<script type="math/tex; mode=display">
+H_{\text {out}}=\left\lfloor\frac{H_{\text {in}}+2 \times \text { padding }[0]-\text { dilation }[0] \times\left(\right.\text { kernel } \left._{\text {size }}[0]-1\right)-1}{\text { stride }[0]}+1\right ]</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">conv_layer = nn.Conv2d(<span class="number">3</span>, <span class="number">1</span>, <span class="number">3</span>)   <span class="comment"># input:(i, o, size) weights:(o, i , h, w)</span></span><br><span class="line">nn.init.xavier_normal_(conv_layer.weight.data)</span><br><span class="line"><span class="comment"># calculation</span></span><br><span class="line">img_conv = conv_layer(img_tensor)</span><br></pre></td></tr></table></figure>
+<p>卷积维度：<strong>一般情况下，卷积核在几个维度上滑动，就是几维卷积</strong></p>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20200821102505966.png" alt="image-20200821102505966"></p>
+<p><strong>转置卷积：</strong></p>
+<p>转置卷积又称为反卷积(Deconvolution)和部分跨越卷积(Fractionally  strided Convolution) ，用于对图像进行<strong>上采样(UpSample)</strong></p>
+<p>为什么称为转置卷积？</p>
+<p>假设图像尺寸为<script type="math/tex">4\times4</script>，卷积核为<script type="math/tex">3\times3</script>，padding=0，stride=1</p>
+<ul>
+<li>正常卷积操作过程：图像：<script type="math/tex">I_{16\times1}</script>（先拉成向量）卷积核： <script type="math/tex">K_{𝟒\times𝟏𝟔}</script> 输出：<script type="math/tex">O_{𝟒\times𝟏} = K_{𝟒\times𝟏𝟔} \times I_{𝟏𝟔\times1}</script></li>
+<li><strong>转置卷积：</strong>假设图像尺寸为<script type="math/tex">2\times2</script>，卷积核为<script type="math/tex">3\times3</script>，padding=0，stride=1。图像：<script type="math/tex">I_{4\times1}</script>，卷积核：<script type="math/tex">K_{16\times4}</script> ，输出：<script type="math/tex">O_{16\times𝟏} = K_{16\times4} \times I_{4\times1}</script></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">nn.ConvTranspose2d( in_channels,</span><br><span class="line">                    out_channels,</span><br><span class="line">                    kernel_size,</span><br><span class="line">                    stride=<span class="number">1</span>,</span><br><span class="line">                    padding=<span class="number">0</span>,</span><br><span class="line">                    output_padding=<span class="number">0</span>,</span><br><span class="line">                    groups=<span class="number">1</span>,</span><br><span class="line">                    bias=<span class="literal">True</span>,</span><br><span class="line">                    dilation=<span class="number">1</span>,</span><br><span class="line">                    padding_mode=<span class="string">&#x27;zeros&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>尺寸计算简化版：</p>
+<script type="math/tex; mode=display">
+\mathrm{o u t}_{s i z e}=\left(\mathrm{in}_{s i z e}-1\right) \times\text {stride}+\mathrm{kernel}_{s i z e}</script><p>尺寸计算完整版：</p>
+<script type="math/tex; mode=display">
+H_{\text {out}}=\left(H_{\text {in}}-1\right) \times \operatorname{stride}[0]-2 \times \text { padding }[0]+\operatorname{dilation}[0] \times\left(\text { kernel }_{-} \operatorname{size}[0]-1\right)\\+\text { output_padding }[0]+1</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">conv_layer = nn.ConvTranspose2d(<span class="number">3</span>, <span class="number">1</span>, <span class="number">3</span>, stride=<span class="number">2</span>)   <span class="comment"># input:(i, o, size)</span></span><br><span class="line">nn.init.xavier_normal_(conv_layer.weight.data)</span><br><span class="line"><span class="comment"># calculation</span></span><br><span class="line">img_conv = conv_layer(img_tensor)</span><br></pre></td></tr></table></figure>
+<h2 id="1-6池化层"><a href="#1-6池化层" class="headerlink" title="1.6池化层"></a>1.6池化层</h2><p>池化运算：对信号进行收集”并“总结”，类似水池收集水资源，因而得名池化层</p>
+<ul>
+<li>“收集”：多变少 </li>
+<li>“总结”：最大值/平均值</li>
+</ul>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20200821104343776.png" alt="image-20200821104343776" style="zoom:1000%;"></p>
+<ul>
+<li><code>nn.MaxPool2d()</code>功能：对二维图像信息进行最大值池化。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#最大值池化</span></span><br><span class="line">nn.MaxPool2d(kernel_size,            <span class="comment">#卷积核尺寸 </span></span><br><span class="line">             stride=<span class="literal">None</span>,            <span class="comment">#步长</span></span><br><span class="line">             padding=<span class="number">0</span>,              <span class="comment">#填充个数 </span></span><br><span class="line">             dilation=<span class="number">1</span>,             <span class="comment">#池化核大小</span></span><br><span class="line">             return_indices=<span class="literal">False</span>,   <span class="comment">#记录池化像素索引 </span></span><br><span class="line">             ceil_mode=<span class="literal">False</span>)        <span class="comment">#尺寸向上取整</span></span><br></pre></td></tr></table></figure>
+<p><code>return_indices</code>：记录池化像素索引，在反池化时，把对应的像素放在对应的位置上</p>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20200821104704031.png" alt="image-20200821104704031" style="zoom:100%;"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">maxpool_layer = nn.MaxPool2d((<span class="number">2</span>, <span class="number">2</span>), stride=(<span class="number">2</span>, <span class="number">2</span>))   </span><br><span class="line"><span class="comment"># input:(i, o, size) weights:(o, i , h, w)</span></span><br><span class="line">img_pool = maxpool_layer(img_tensor)</span><br></pre></td></tr></table></figure>
+<p>平均值池化：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">nn.AvgPool2d(kernel_size, </span><br><span class="line">            stride=<span class="literal">None</span>, </span><br><span class="line">            padding=<span class="number">0</span>, </span><br><span class="line">            ceil_mode=<span class="literal">False</span>,        <span class="comment">#尺寸向上取整</span></span><br><span class="line">            count_include_pad=<span class="literal">True</span>, <span class="comment">#填充值用于计算</span></span><br><span class="line">            divisor_override=<span class="literal">None</span>)  <span class="comment">#除法因子</span></span><br></pre></td></tr></table></figure>
+<p>反池化：</p>
+<ul>
+<li><strong>功能：对二维信号（图像）进行最大值池化上采样</strong></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nn.MaxUnpool2d( kernel_size, <span class="comment">#池化核尺寸</span></span><br><span class="line">                stride=<span class="literal">None</span>, <span class="comment">#步长</span></span><br><span class="line">                padding=<span class="number">0</span>)   <span class="comment">#填充个数</span></span><br><span class="line">forward(self, <span class="built_in">input</span>, indices, output_size=<span class="literal">None</span>)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># pooling</span></span><br><span class="line">img_tensor = torch.randint(high=<span class="number">5</span>, size=(<span class="number">1</span>, <span class="number">1</span>, <span class="number">4</span>, <span class="number">4</span>), dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">maxpool_layer = nn.MaxPool2d((<span class="number">2</span>, <span class="number">2</span>), stride=(<span class="number">2</span>, <span class="number">2</span>), return_indices=<span class="literal">True</span>)</span><br><span class="line">img_pool, indices = maxpool_layer(img_tensor)<span class="comment"># 记录索引</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># unpooling</span></span><br><span class="line">img_reconstruct = torch.randn_like(img_pool, dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">maxunpool_layer = nn.MaxUnpool2d((<span class="number">2</span>, <span class="number">2</span>), stride=(<span class="number">2</span>, <span class="number">2</span>))</span><br><span class="line">img_unpool = maxunpool_layer(img_reconstruct, indices)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;raw_img:\n&#123;&#125;\nimg_pool:\n&#123;&#125;&quot;</span>.<span class="built_in">format</span>(img_tensor, img_pool))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;img_reconstruct:\n&#123;&#125;\nimg_unpool:\n&#123;&#125;&quot;</span>.<span class="built_in">format</span>(img_reconstruct, img_unpool))</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20220630021638666.png" alt="image-20220630021638666"></p>
+<p>可以观察到img_unpool矩阵中对应的时矩阵中进行最大值池化的位置。</p>
+<h2 id="1-7线性层"><a href="#1-7线性层" class="headerlink" title="1.7线性层"></a>1.7线性层</h2><p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20200821105933552.png" alt="image-20200821105933552" style="zoom:35%;"></p>
+<p>线性层又称全连接层，其每个神经元与上一层所有神经元相连实现对前一层的<strong>线性组合，线性变换</strong>。</p>
+<ul>
+<li>功能：对一维信号（向量）进行线性组合</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nn.Linear(in_features,  <span class="comment">#输入结点数 </span></span><br><span class="line">          out_features, <span class="comment">#输出结点数</span></span><br><span class="line">          bias=<span class="literal">True</span>)    <span class="comment">#偏置</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">inputs = torch.tensor([[<span class="number">1.</span>, <span class="number">2</span>, <span class="number">3</span>]]) </span><br><span class="line">linear_layer = nn.Linear(<span class="number">3</span>, <span class="number">4</span>)    <span class="comment">#输入3，输出4</span></span><br><span class="line">linear_layer.weight.data = torch.tensor([[<span class="number">1.</span>, <span class="number">1.</span>, <span class="number">1.</span>],</span><br><span class="line">                                         [<span class="number">2.</span>, <span class="number">2.</span>, <span class="number">2.</span>],</span><br><span class="line">                                         [<span class="number">3.</span>, <span class="number">3.</span>, <span class="number">3.</span>],</span><br><span class="line">                                         [<span class="number">4.</span>, <span class="number">4.</span>, <span class="number">4.</span>]])</span><br><span class="line">linear_layer.bias.data.fill_(<span class="number">0.5</span>)</span><br><span class="line">output = linear_layer(inputs)</span><br><span class="line"><span class="built_in">print</span>(inputs, inputs.shape)</span><br><span class="line"><span class="built_in">print</span>(linear_layer.weight.data, linear_layer.weight.data.shape)</span><br><span class="line"><span class="built_in">print</span>(output, output.shape)</span><br></pre></td></tr></table></figure>
+<p>通过结果可以发现，线性层本质是$y=x W^{T}+\text{bias}$，如第一列为$1\times1+1\times2+1\times3=6$</p>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20220630021703084.png" alt="image-20220630021703084"></p>
+<h2 id="1-8激活函数层"><a href="#1-8激活函数层" class="headerlink" title="1.8激活函数层"></a>1.8激活函数层</h2><p>激活函数对特征进行非线性变换，赋予多层神经网络具有<strong>深度的意义</strong></p>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20200821110547520.png" alt="image-20200821110547520" style="zoom:90%;"></p>
+<p>常用的激活函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">nn.Sigmoid()</span><br><span class="line">nn.tanh()</span><br><span class="line">nn.ReLu()</span><br><span class="line">nn.LeakyReLU()     <span class="comment">#negative_slope: 负半轴斜率</span></span><br><span class="line">nn.PReLU()         <span class="comment">#init: 可学习斜率</span></span><br><span class="line">nn.RReLU()         <span class="comment">#lower: 均匀分布下限,upper:均匀分布上限</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF7-%E6%A8%A1%E5%9E%8B%E5%BB%BA%E7%AB%8B/image-20200821110927941.png" alt="image-20200821110927941" style="zoom:90%;"></p>
+
         </div>
 
         
@@ -198,6 +452,14 @@
                 <span>Tag(s):</span>
                 <span class="tag">
                     
+                    
+                        <a href="/tags/%E7%BC%96%E7%A8%8B/"># 编程</a>
+                    
+                        <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"># 深度学习</a>
+                    
+                        <a href="/tags/Pytorch/"># Pytorch</a>
+                    
+                        
                 </span>
             </div>
             <div>

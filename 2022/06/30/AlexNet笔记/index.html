@@ -324,11 +324,11 @@
 <h2 id="2-4摘要"><a href="#2-4摘要" class="headerlink" title="2.4摘要"></a>2.4摘要</h2><ul>
 <li><p>在ILSVRC-2010的120万张图片上训练深度卷积神经网络，获得最优结果，top-1和top-5error分别为 37.5%, 17%</p>
 </li>
-<li><p>该网络（AlexNet）由==5个卷积层和3个全连接层==构成，共计==6000万参数==，==65万个神经元==</p>
+<li><p>该网络（AlexNet）由<strong>5个卷积层和3个全连接层</strong>构成，共计6000万参数，65万个神经元</p>
 </li>
-<li><p>为加快训练，采用非饱和激活函数——==ReLU==，采用==GPU==训练</p>
+<li><p>为加快训练，采用非饱和激活函数——<strong>ReLU</strong>，采用GPU训练</p>
 </li>
-<li><p>为减轻过拟合，采用==Dropout==</p>
+<li><p>为减轻过拟合，采用<strong>Dropout</strong></p>
 </li>
 <li><p>基于以上模型及技巧，在ILSVRC-2012以超出第二名10.9个百分点成绩夺冠</p>
 </li>
@@ -387,7 +387,9 @@ b_{x, y}^{i}=a_{x, y}^{i} /\left(k+\alpha \sum_{j=\max (0, i-n / 2)}^{\min (N-1,
 <p>相对于传统的no-overlapping pooling，采用Overlapping Pooling不仅可以提升预测精度，同时一定程度上可以减缓过拟合。</p>
 <p>相比于正常池化（步长s=2，窗口z=2） 重叠池化(步长s=2，窗口z=3) 可以减少top-1, top-5分别为0.4% 和0.3%；重叠池化可以避免过拟合。</p>
 <h2 id="2-6训练技巧"><a href="#2-6训练技巧" class="headerlink" title="2.6训练技巧"></a>2.6训练技巧</h2><h3 id="2-6-1Data-Augmentation"><a href="#2-6-1Data-Augmentation" class="headerlink" title="2.6.1Data Augmentation"></a>2.6.1Data Augmentation</h3><p>数据增强</p>
-<p>==方法一：针对<strong>位置</strong>==</p>
+<blockquote>
+<p>方法一：针对<strong>位置</strong></p>
+</blockquote>
 <p>训练阶段：</p>
 <ul>
 <li><p>图片统一缩放至256*256</p>
@@ -405,7 +407,9 @@ b_{x, y}^{i}=a_{x, y}^{i} /\left(k+\alpha \sum_{j=\max (0, i-n / 2)}^{\min (N-1,
 <li><p>均进行水平翻转，共得到10张224*224图片</p>
 </li>
 </ul>
-<p>==方法二：针对<strong>颜色</strong>==</p>
+<blockquote>
+<p>方法二：针对<strong>颜色</strong></p>
+</blockquote>
 <p><img src="/2022/06/30/AlexNet%E7%AC%94%E8%AE%B0/image-20210221122855330.png" alt="image-20210221122855330"></p>
 <p>进行主成分分析，进行RGB的图像扰动</p>
 <p>通过PCA方法修改RGB通道的像素值，实现颜色扰动，效果有限，仅在top-1提升1个点（top-1 acc约62.5%）</p>

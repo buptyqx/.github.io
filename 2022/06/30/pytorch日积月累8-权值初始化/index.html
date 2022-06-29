@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ch">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="buptyqx">
+
+
+
+
+
+<title>pytorch日积月累8-权值初始化 | buptyqx&#39;s BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">BUPTyqx&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">BUPTyqx&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">pytorch日积月累8-权值初始化</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">buptyqx</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">June 30, 2022&nbsp;&nbsp;2:26:42</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF/">pytorch日积月累</a>
+                            
+                        </span>
+                    
+	                
+    		            <span class="post-count">
+	                Words:
+    		            <a href="">446</a>  
+    		            </span>
+	                
+	                
+    		            <span class="post-count">
+	                Time:
+    		            <a href="">2min</a>  
+   	                    </span>
+	                 
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="pytorch日积月累8-权值初始化"><a href="#pytorch日积月累8-权值初始化" class="headerlink" title="pytorch日积月累8-权值初始化"></a>pytorch日积月累8-权值初始化</h1><h2 id="1-梯度消亡和梯度爆炸"><a href="#1-梯度消亡和梯度爆炸" class="headerlink" title="1.梯度消亡和梯度爆炸"></a>1.梯度消亡和梯度爆炸</h2><p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF8-%E6%9D%83%E5%80%BC%E5%88%9D%E5%A7%8B%E5%8C%96/image-20200821111326572.png" alt="image-20200821111326572"></p>
+<script type="math/tex; mode=display">
+1.  \mathrm{E}(\boldsymbol{X} \times \boldsymbol{Y})=\boldsymbol{E}(\boldsymbol{X}) \times \boldsymbol{E}(\boldsymbol{Y})\\ 
+2.  \mathrm{D}(\boldsymbol{X})=\boldsymbol{E}\left(\mathrm{X}^{2}\right)-[\boldsymbol{E}(\boldsymbol{X})]^{2} \\
+3.  \mathbf{D}(\boldsymbol{X}+\boldsymbol{Y})=\boldsymbol{D}(\boldsymbol{X})+\boldsymbol{D}(\boldsymbol{Y}) \\</script><ul>
+<li>${D}({X} \times {Y})={D}({X}) \times {D}({Y})+{D}({X}) \times[E({Y})]^{2}+{D}({Y}) \times[{E}({X})]^{2}$</li>
+<li>若$E({X})=0, {E}({Y})=0$，则有$\mathrm{D}(\mathrm{X} \times \mathrm{Y})=\mathrm{D}(\mathrm{X}) \times \mathrm{D}(\mathrm{Y})$</li>
+</ul>
+<p>已知$H_1$层输出的结果$\mathrm{H}_{11}=\sum_{i=0}^{n} X_{i} \times W_{1 i}$,根据$\quad \mathrm{D}(\mathrm{X} \times \mathrm{Y})=\mathrm{D}(\mathrm{X}) \times \mathrm{D}(\mathrm{Y})$,可以得到：</p>
+<script type="math/tex; mode=display">
+\begin{array}{c}
+\mathbf{D}\left(\mathrm{H}_{11}\right)=\sum_{i=0}^{n} D\left(X_{i}\right) \times D\left(W_{1 i}\right) \\
+=\mathrm{n} \times(1 \times 1) \\
+=\mathrm{n} \\
+\operatorname{std}\left(\mathrm{H}_{11}\right)=\sqrt{\mathbf{D}\left(\mathrm{H}_{11}\right)}=\sqrt{n} \\
+\mathbf{D}\left(\mathrm{H}_{1}\right)=n \times D(X) \times D(W)=1 \\
+\mathbf{D}(W)=\frac{1}{n} \Rightarrow \operatorname{std}(W)=\sqrt{\frac{1}{n}}
+\end{array}</script><p>可以发现对于神经网络，每一层的标准差都变为原来的$\sqrt{n}$倍。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">initialize</span>(<span class="params">self</span>):</span><br><span class="line">   <span class="keyword">for</span> m <span class="keyword">in</span> self.modules():</span><br><span class="line">       <span class="keyword">if</span> <span class="built_in">isinstance</span>(m, nn.Linear):<span class="comment">#采用恰当的权值初始化方法</span></span><br><span class="line">          nn.init.normal_(m.weight.data, std=np.sqrt(<span class="number">1</span>/self.neural_num))    </span><br><span class="line">        <span class="comment"># normal: mean=0, std=1</span></span><br></pre></td></tr></table></figure>
+<h2 id="2-Xavier初始化"><a href="#2-Xavier初始化" class="headerlink" title="2.Xavier初始化"></a>2.Xavier初始化</h2><p>带有激活函数时如何进行初始化：</p>
+<p>方差一致性<strong>：保持数据尺度维持在恰当范围，通常方差为1</strong></p>
+<p>激活函数：饱和函数，如Sigmoid，Tanh</p>
+<script type="math/tex; mode=display">
+n_{i} \times D(W)=1 \\
+n_{i+1} \times D(W)=1 \\
+\Rightarrow D(W)=\frac{2}{n_{i}+n_{i+1}}</script><script type="math/tex; mode=display">
+W \sim U[-a, a] \\
+D(W)=\frac{(-a-a)^{2}}{12}=\frac{(2 a)^{2}}{12}=\frac{a^{2}}{3} \\
+\frac{2}{n_{i}+n_{i+1}}=\frac{a^{2}}{3} \Rightarrow a=\frac{\sqrt{6}}{\sqrt{n_{i}+n_{i+1}}} \\
+\Rightarrow \quad W \sim U\left[-\frac{\sqrt{6}}{\sqrt{n_{i}+n_{i+1}}}, \frac{\sqrt{6}}{\sqrt{n_{i}+n_{i+1}}}\right]</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#利用公式进行的初始化方法</span></span><br><span class="line">a = np.sqrt(<span class="number">6</span> / (self.neural_num + self.neural_num))</span><br><span class="line">tanh_gain = nn.init.calculate_gain(<span class="string">&#x27;tanh&#x27;</span>)</span><br><span class="line">a *= tanh_gain</span><br><span class="line">nn.init.uniform_(m.weight.data, -a, a)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#nn模块中的Xavier初始化方法</span></span><br><span class="line">tanh_gain = nn.init.calculate_gain(<span class="string">&#x27;tanh&#x27;</span>)</span><br><span class="line">nn.init.xavier_uniform_(m.weight.data, gain=tanh_gain)</span><br></pre></td></tr></table></figure>
+<h2 id="3-Kaiming初始化"><a href="#3-Kaiming初始化" class="headerlink" title="3.Kaiming初始化"></a>3.Kaiming初始化</h2><p>方差一致性<strong>：保持数据尺度维持在恰当范围，通常方差为1</strong></p>
+<p>激活函数：ReLU及其变种</p>
+<script type="math/tex; mode=display">
+\mathbf{D}(W)=\frac{2}{n_{i}} \\
+\mathbf{D}(W)=\frac{2}{\left(1+\mathrm{a}^{2}\right) \times n_{i}} \\
+\operatorname{std}(W)=\sqrt{\frac{2}{\left(1+\mathrm{a}^{2}\right) \times n_{i}}}</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nn.init.normal_(m.weight.data, std=np.sqrt(<span class="number">2</span> / self.neural_num))</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nn.init.kaiming_normal_(m.weight.data)</span><br></pre></td></tr></table></figure>
+<p><strong>计算方差变化尺度：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nn.init.calculate_gain(nonlinearity, param=<span class="literal">None</span>)</span><br><span class="line"><span class="comment">#nonlinearity: 激活函数名称</span></span><br><span class="line"><span class="comment">#param: 激活函数的参数，如Leaky ReLU的negative_slop</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">x = torch.randn(<span class="number">10000</span>)</span><br><span class="line">out = torch.tanh(x)</span><br><span class="line">gain = x.std() / out.std()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;gain:&#123;&#125;&#x27;</span>.<span class="built_in">format</span>(gain))</span><br><span class="line">tanh_gain = nn.init.calculate_gain(<span class="string">&#x27;tanh&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;tanh_gain in PyTorch:&#x27;</span>, tanh_gain)<span class="comment">#1.666667表示方差每次会减少1.6左右</span></span><br></pre></td></tr></table></figure>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>buptyqx</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="http://example.com/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF8-%E6%9D%83%E5%80%BC%E5%88%9D%E5%A7%8B%E5%8C%96/">http://example.com/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF8-%E6%9D%83%E5%80%BC%E5%88%9D%E5%A7%8B%E5%8C%96/</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/%E7%BC%96%E7%A8%8B/"># 编程</a>
+                    
+                        <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"># 深度学习</a>
+                    
+                        <a href="/tags/Pytorch/"># Pytorch</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF9-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/">pytorch日积月累9-损失函数</a>
+            
+            
+            <a class="next" rel="next" href="/2022/06/30/AlexNet%E7%AC%94%E8%AE%B0/">2.AlexNet笔记</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© buptyqx | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"position":"left","width":180,"height":360},"mobile":{"show":true},"log":false});</script></body>
+
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ch">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="buptyqx">
+
+
+
+
+
+<title>pytorch日积月累9-损失函数 | buptyqx&#39;s BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">BUPTyqx&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">BUPTyqx&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">pytorch日积月累9-损失函数</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">buptyqx</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">June 30, 2022&nbsp;&nbsp;2:26:51</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF/">pytorch日积月累</a>
+                            
+                        </span>
+                    
+	                
+    		            <span class="post-count">
+	                Words:
+    		            <a href="">1,531</a>  
+    		            </span>
+	                
+	                
+    		            <span class="post-count">
+	                Time:
+    		            <a href="">8min</a>  
+   	                    </span>
+	                 
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="pytorch日积月累9-损失函数"><a href="#pytorch日积月累9-损失函数" class="headerlink" title="pytorch日积月累9-损失函数"></a>pytorch日积月累9-损失函数</h1><p><strong>损失函数：衡量模型输出与真实标签的差异</strong></p>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF9-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/Python+Java+人工智能+c++/深度学习/image-20200821113843119.png" alt="image-20200821113843119" style="zoom:38%;"></p>
+<p><strong>损失函数(Loss Function)：</strong></p>
+<script type="math/tex; mode=display">
+\operatorname{Loss} =f\left(\hat{y}, y\right)</script><p><strong>代价函数(Cost Function)：</strong></p>
+<script type="math/tex; mode=display">
+\cos t=\frac{1}{N} \sum_{i}^{N} f\left(\hat{y_{i}}, y_{i}\right)</script><p><strong>目标函数(Objective Function)：</strong></p>
+<script type="math/tex; mode=display">
+ \boldsymbol{O} \boldsymbol{b} \boldsymbol{j}=  Cost  +  Regularization</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">_Loss</span>(<span class="title class_ inherited__">Module</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, size_average=<span class="literal">None</span>, reduce=<span class="literal">None</span>, reduction=<span class="string">&#x27;mean&#x27;</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(_Loss, self).__init__()</span><br><span class="line">        <span class="keyword">if</span> size_average <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span> <span class="keyword">or</span> reduce <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">            self.reduction = _Reduction.legacy_get_string(</span><br><span class="line">                            size_average, reduce)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            self.reduction = reduction</span><br></pre></td></tr></table></figure>
+<h2 id="1-交叉熵损失函数"><a href="#1-交叉熵损失函数" class="headerlink" title="1.交叉熵损失函数"></a>1.交叉熵损失函数</h2><p>功能： nn.LogSoftmax ()与nn.NLLLoss ()结合，进行交叉熵计算</p>
+<p>主要参数：</p>
+<ul>
+<li><p>weight<strong>：各类别的loss设置权值</strong></p>
+</li>
+<li><p>ignore _index<strong>：忽略某个类别</strong></p>
+</li>
+<li><p>reduction ：计算模式，可为none/sum /mean</p>
+<ul>
+<li>none- 逐个元素计算</li>
+<li>sum- 所有元素求和，返回标量</li>
+<li>mean- 加权平均，返回标量</li>
+</ul>
+</li>
+</ul>
+<p>熵：</p>
+<script type="math/tex; mode=display">
+\mathrm{H}(\mathrm{P})=E_{x \sim p}[I(x)]=-\sum_{i}^{N} P\left(x_{i}\right) \log P\left(x_{i}\right)</script><p>自信息：</p>
+<script type="math/tex; mode=display">
+I(x)=-\log [p(x)]</script><p>相对熵：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+D_{K L}(P, Q) &=E_{x \sim p}\left[\log \frac{P(x)}{Q(x)}\right] \\
+&=E_{x \sim p}[\log P(x)-\log Q(x)] \\
+&=\sum_{i=1}^{N} P\left(x_{i}\right)\left[\log P\left(x_{i}\right)-\log Q\left(x_{i}\right)\right] \\
+&=\sum_{i=1}^{N} P\left(x_{i}\right) \log P\left(x_{i}\right)-\sum_{i=1}^{N} P\left(x_{i}\right) \log Q\left(x_{i}\right) \\
+&=H(P, Q)-H(\mathrm{P})
+\end{aligned}</script><p>交叉熵：</p>
+<script type="math/tex; mode=display">
+\mathrm{H}(\boldsymbol{P}, \boldsymbol{Q})=\boldsymbol{D}_{K L}(\boldsymbol{P}, \boldsymbol{Q})+\mathrm{H}(\boldsymbol{P})</script><script type="math/tex; mode=display">
+\mathrm{H}(\boldsymbol{P}, \boldsymbol{Q})=-\sum_{i=1}^{N} \boldsymbol{P}\left(\boldsymbol{x}_{i}\right) \log Q\left(\boldsymbol{x}_{i}\right)</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">nn.CrossEntropyLoss(weight=<span class="literal">None</span>, <span class="comment">#各类别的loss设置权值</span></span><br><span class="line">                    size_average=<span class="literal">None</span>, </span><br><span class="line">                    ignore_index=-<span class="number">100</span>,<span class="comment">#忽略某一个类别 </span></span><br><span class="line">                    reduce=<span class="literal">None</span>, </span><br><span class="line">                    reduction=‘mean’)<span class="comment">#计算模式</span></span><br><span class="line"><span class="comment">#none-逐元素计算</span></span><br><span class="line"><span class="comment">#sum-所有元素求和返回标量</span></span><br><span class="line"><span class="comment">#mean-加权平均，返回标量</span></span><br></pre></td></tr></table></figure>
+<script type="math/tex; mode=display">
+\mathrm{H}(\boldsymbol{P}, \boldsymbol{Q})=-\sum_{\boldsymbol{i}=1}^{N} \boldsymbol{P}\left(\boldsymbol{x}_{\boldsymbol{i}}\right) \log \boldsymbol{Q}\left(\boldsymbol{x}_{\boldsymbol{i}}\right) \\
+\operatorname{loss}(x, \text {class})=-\log \left(\frac{\exp (x[\operatorname{class}])}{\sum_{j} \exp (x[j])}\right)=-x[\operatorname{class}]+\log \left(\sum_{j} \exp (x[j])\right) \\
+\operatorname{loss}(x, \text {class})=\text { weight[class] }\left(-x[\text { class }]+\log \left(\sum_{j} \exp (x[j])\right)\right)</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># def loss function</span></span><br><span class="line">loss_f_none = nn.CrossEntropyLoss(weight=<span class="literal">None</span>, reduction=<span class="string">&#x27;none&#x27;</span>)</span><br><span class="line"><span class="comment"># forward</span></span><br><span class="line">loss_none = loss_f_none(inputs, target)</span><br><span class="line"><span class="comment"># view</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Cross Entropy Loss:\n &quot;</span>, loss_none, loss_sum, loss_mean)</span><br><span class="line"><span class="comment">#实现原理:</span></span><br><span class="line">    idx = <span class="number">0</span></span><br><span class="line">    input_1 = inputs.detach().numpy()[idx]      <span class="comment"># [1, 2]</span></span><br><span class="line">    target_1 = target.numpy()[idx]              <span class="comment"># [0]</span></span><br><span class="line">    <span class="comment"># 第一项</span></span><br><span class="line">    x_class = input_1[target_1]</span><br><span class="line">    <span class="comment"># 第二项</span></span><br><span class="line">    sigma_exp_x = np.<span class="built_in">sum</span>(<span class="built_in">list</span>(<span class="built_in">map</span>(np.exp, input_1)))</span><br><span class="line">    log_sigma_exp_x = np.log(sigma_exp_x)</span><br><span class="line">    <span class="comment"># 输出loss</span></span><br><span class="line">    loss_1 = -x_class + log_sigma_exp_x</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;第一个样本loss为: &quot;</span>, loss_1)</span><br><span class="line"><span class="comment">#带权值：</span></span><br><span class="line">weights = torch.tensor([<span class="number">1</span>, <span class="number">2</span>], dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">loss_f_none_w = nn.CrossEntropyLoss(weight=weights, reduction=<span class="string">&#x27;none&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="2-NLLLoss"><a href="#2-NLLLoss" class="headerlink" title="2.NLLLoss"></a>2.NLLLoss</h2><p>功能：实现负对数似然函数中的负号功能</p>
+<script type="math/tex; mode=display">
+\ell(x, y)=L=\left\{l_{1}, \ldots, l_{N}\right\}^{\prime}, \quad l_{n}=-w_{y_{n}} x_{n, y_{n}}</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nn.NLLLoss( weight=<span class="literal">None</span>,</span><br><span class="line">            size_average=<span class="literal">None</span>, </span><br><span class="line">            ignore_index=-<span class="number">100</span>, </span><br><span class="line">            reduce=<span class="literal">None</span>, </span><br><span class="line">            reduction=<span class="string">&#x27;mean&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="3-BCELoss"><a href="#3-BCELoss" class="headerlink" title="3.BCELoss"></a>3.BCELoss</h2><p>功能：二分类交叉熵<br>注意事项：输入值取值在[0,1]<br>主要参数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nn.BCELoss( weight=<span class="literal">None</span>, </span><br><span class="line">            size_average=<span class="literal">None</span>, </span><br><span class="line">            reduce=<span class="literal">None</span>, </span><br><span class="line">            reduction=<span class="string">&#x27;mean&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">inputs = torch.tensor([[<span class="number">1</span>, <span class="number">2</span>], [<span class="number">2</span>, <span class="number">2</span>], [<span class="number">3</span>, <span class="number">4</span>], [<span class="number">4</span>, <span class="number">5</span>]], dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">target = torch.tensor([[<span class="number">1</span>, <span class="number">0</span>], [<span class="number">1</span>, <span class="number">0</span>], [<span class="number">0</span>, <span class="number">1</span>], [<span class="number">0</span>, <span class="number">1</span>]], dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">target_bce = target</span><br><span class="line"><span class="comment"># itarget</span></span><br><span class="line">inputs = torch.sigmoid(inputs)</span><br><span class="line">weights = torch.tensor([<span class="number">1</span>, <span class="number">1</span>], dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">loss_f_none_w = nn.BCELoss(weight=weights, reduction=<span class="string">&#x27;none&#x27;</span>)</span><br><span class="line"><span class="comment"># forward</span></span><br><span class="line">loss_none_w = loss_f_none_w(inputs, target_bce)</span><br></pre></td></tr></table></figure>
+<h2 id="4-BCEWithLogitsLoss"><a href="#4-BCEWithLogitsLoss" class="headerlink" title="4.BCEWithLogitsLoss"></a>4.BCEWithLogitsLoss</h2><p>功能：结合Sigmoid与二分类交叉熵</p>
+<p>注意事项：网络最后不加sigmoid函数</p>
+<script type="math/tex; mode=display">
+l_{n}=-w_{n}\left[y_{n} \cdot \log \sigma\left(x_{n}\right)+\left(1-y_{n}\right) \cdot \log \left(1-\sigma\left(x_{n}\right)\right)\right]</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nn.BCEWithLogitsLoss(weight=<span class="literal">None</span>, </span><br><span class="line">                    size_average=<span class="literal">None</span>, </span><br><span class="line">                    reduce=<span class="literal">None</span>, </span><br><span class="line">                    reduction=<span class="string">&#x27;mean&#x27;</span>, </span><br><span class="line">                    pos_weight=<span class="literal">None</span>)<span class="comment">#正样本的权值</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">inputs = torch.tensor([[<span class="number">1</span>, <span class="number">2</span>], [<span class="number">2</span>, <span class="number">2</span>], [<span class="number">3</span>, <span class="number">4</span>], [<span class="number">4</span>, <span class="number">5</span>]], dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">target = torch.tensor([[<span class="number">1</span>, <span class="number">0</span>], [<span class="number">1</span>, <span class="number">0</span>], [<span class="number">0</span>, <span class="number">1</span>], [<span class="number">0</span>, <span class="number">1</span>]], dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">target_bce = target</span><br><span class="line">weights = torch.tensor([<span class="number">1</span>], dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">pos_w = torch.tensor([<span class="number">3</span>], dtype=torch.<span class="built_in">float</span>)        <span class="comment"># 3</span></span><br><span class="line">loss_f_none_w = nn.BCEWithLogitsLoss(weight=weights, reduction=<span class="string">&#x27;none&#x27;</span>, </span><br><span class="line">                                     pos_weight=pos_w)</span><br><span class="line">loss_none_w = loss_f_none_w(inputs, target_bce)</span><br></pre></td></tr></table></figure>
+<h2 id="5-nn-L1Loss"><a href="#5-nn-L1Loss" class="headerlink" title="5.nn.L1Loss"></a>5.nn.L1Loss</h2><p><strong>功能：</strong> <strong>计算inputs与target之差的绝对值</strong></p>
+<script type="math/tex; mode=display">
+l_{n}=\left|x_{n}-y_{n}\right|</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nn.L1Loss(size_average=<span class="literal">None</span>, </span><br><span class="line">          reduce=<span class="literal">None</span>, </span><br><span class="line">          reduction=<span class="string">&#x27;mean’)</span></span><br></pre></td></tr></table></figure>
+<h2 id="6-nn-MSELoss"><a href="#6-nn-MSELoss" class="headerlink" title="6.nn.MSELoss"></a>6.nn.MSELoss</h2><p><strong>功能：</strong> <strong>计算inputs与target之差的平方</strong></p>
+<script type="math/tex; mode=display">
+l_{n}=\left(x_{n}-y_{n}\right)^{2}</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nn.MSELoss(size_average=<span class="literal">None</span>, </span><br><span class="line">           reduce=<span class="literal">None</span>, </span><br><span class="line">           reduction=<span class="string">&#x27;mean’)</span></span><br></pre></td></tr></table></figure>
+<h2 id="7-SmoothL1Loss"><a href="#7-SmoothL1Loss" class="headerlink" title="7.SmoothL1Loss"></a>7.SmoothL1Loss</h2><p><strong>功能：</strong> <strong>平滑的L1Loss</strong></p>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF9-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/image-20200821160415861.png" alt="image-20200821160415861" style="zoom:100%;"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nn.SmoothL1Loss(size_average=<span class="literal">None</span>, </span><br><span class="line">                reduce=<span class="literal">None</span>, </span><br><span class="line">                reduction=<span class="string">&#x27;mean’)</span></span><br></pre></td></tr></table></figure>
+<h2 id="8-PoissonNLLLoss"><a href="#8-PoissonNLLLoss" class="headerlink" title="8.PoissonNLLLoss"></a>8.PoissonNLLLoss</h2><p><strong>功能：泊松分布的负对数似然损失函数</strong></p>
+<ul>
+<li><p><code>log_input = True：loss(input, target) = exp(input) - target * input</code></p>
+</li>
+<li><p><code>log_input = False：loss(input, target) = input - target * log(input+eps)</code></p>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">nn.PoissonNLLLoss(log_input=<span class="literal">True</span>, <span class="comment">#log_input：输入是否为对数形式，决定计算公式</span></span><br><span class="line">                  full=<span class="literal">False</span>, <span class="comment">#full：计算所有loss，默认为False</span></span><br><span class="line">                  size_average=<span class="literal">None</span>, </span><br><span class="line">                  eps=<span class="number">1e-08</span>,<span class="comment">#eps：修正项，避免log（input）为nan*</span></span><br><span class="line">                  reduce=<span class="literal">None</span>, </span><br><span class="line">                  reduction=<span class="string">&#x27;mean&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="9-nn-KLDivLoss"><a href="#9-nn-KLDivLoss" class="headerlink" title="9.nn.KLDivLoss"></a>9.nn.KLDivLoss</h2><p>功能：计算KLD（divergence），KL散度，相对熵</p>
+<p>注意事项：需提前将输入计算 log-probabilities，如通过nn.logsoftmax()</p>
+<script type="math/tex; mode=display">
+D_{K L}(P \| Q)=E_{x \sim p}\left[\log \frac{P(x)}{Q(x)}\right]=E_{x-p}[\log P(x)-\log Q(x)] \\
+=\sum_{i=1}^{N} P\left(x_{i}\right)\left(\log P\left(x_{i}\right)-\log Q\left(x_{i}\right)\right) \\
+l_{n}=y_{n} \cdot\left(\log y_{n}-x_{n}\right)</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nn.KLDivLoss(size_average=<span class="literal">None</span>, </span><br><span class="line">             reduce=<span class="literal">None</span>, </span><br><span class="line">             reduction=<span class="string">&#x27;mean&#x27;</span>)</span><br><span class="line"><span class="comment">#reduction ：none/sum/mean/batchmean</span></span><br><span class="line"><span class="comment">#batchmean- batchsize维度求平均值</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">inputs = torch.tensor([[<span class="number">0.5</span>, <span class="number">0.3</span>, <span class="number">0.2</span>], [<span class="number">0.2</span>, <span class="number">0.3</span>, <span class="number">0.5</span>]])</span><br><span class="line">inputs_log = torch.log(inputs)</span><br><span class="line">target = torch.tensor([[<span class="number">0.9</span>, <span class="number">0.05</span>, <span class="number">0.05</span>], [<span class="number">0.1</span>, <span class="number">0.7</span>, <span class="number">0.2</span>]], </span><br><span class="line">                      dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">loss_f_bs_mean = nn.KLDivLoss(reduction=<span class="string">&#x27;batchmean&#x27;</span>)</span><br><span class="line">loss_bs_mean = loss_f_bs_mean(inputs, target)</span><br></pre></td></tr></table></figure>
+<h2 id="10-nn-MarginRankingLoss"><a href="#10-nn-MarginRankingLoss" class="headerlink" title="10.nn.MarginRankingLoss"></a>10.nn.MarginRankingLoss</h2><p>功能：<strong>计算两个向量之间的相似度，用于排序任务</strong></p>
+<p>特别说明：该方法计算两组数据之间的差异，返回一个<script type="math/tex">n\times n</script>的 loss 矩阵</p>
+<script type="math/tex; mode=display">
+\operatorname{loss}(x, y)=\max (0,-y \times(x_ 1-x _2)+\operatorname{margin})</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">nn.MarginRankingLoss(margin=<span class="number">0.0</span>, <span class="comment">#margin ：边界值，x1与x2之间的差异值</span></span><br><span class="line">                     size_average=<span class="literal">None</span>, </span><br><span class="line">                     reduce=<span class="literal">None</span>, </span><br><span class="line">                     reduction=<span class="string">&#x27;mean&#x27;</span>)<span class="comment">#reduction ：计算模式，可为none/sum/mean</span></span><br><span class="line"><span class="comment">#y = 1时， 希望x1比x2大，当x1&gt;x2时，不产生loss</span></span><br><span class="line"><span class="comment">#y = -1时，希望x2比x1大，当x2&gt;x1时，不产生loss</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">x1 = torch.tensor([[<span class="number">1</span>], [<span class="number">2</span>], [<span class="number">3</span>]], dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">x2 = torch.tensor([[<span class="number">2</span>], [<span class="number">2</span>], [<span class="number">2</span>]], dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">target = torch.tensor([<span class="number">1</span>, <span class="number">1</span>, -<span class="number">1</span>], dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">loss_f_none = nn.MarginRankingLoss(margin=<span class="number">0</span>, reduction=<span class="string">&#x27;none&#x27;</span>)</span><br><span class="line">loss = loss_f_none(x1, x2, target)</span><br><span class="line"><span class="built_in">print</span>(loss)</span><br></pre></td></tr></table></figure>
+<h2 id="11-nn-MultiLabelMarginLoss"><a href="#11-nn-MultiLabelMarginLoss" class="headerlink" title="11.nn.MultiLabelMarginLoss"></a>11.nn.MultiLabelMarginLoss</h2><p>功能：<strong>多标签边界损失函数</strong></p>
+<p>举例：四分类任务，样本x属于0类和3类，标签：[0, 3, -1, -1] , 不是[1, 0, 0, 1]</p>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF9-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/image-20200821161750301.png" alt="image-20200821161750301" style="zoom:100%;"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nn.MultiLabelMarginLoss(</span><br><span class="line">    size_average=<span class="literal">None</span>, </span><br><span class="line">    reduce=<span class="literal">None</span>, </span><br><span class="line">    reduction=<span class="string">&#x27;mean&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">x = torch.tensor([[<span class="number">0.1</span>, <span class="number">0.2</span>, <span class="number">0.4</span>, <span class="number">0.8</span>]])</span><br><span class="line">y = torch.tensor([[<span class="number">0</span>, <span class="number">3</span>, -<span class="number">1</span>, -<span class="number">1</span>]], dtype=torch.long)</span><br><span class="line">loss_f = nn.MultiLabelMarginLoss(reduction=<span class="string">&#x27;none&#x27;</span>)</span><br><span class="line">loss = loss_f(x, y)</span><br><span class="line"><span class="comment">#下面是手动计算的代码</span></span><br><span class="line">x = x[<span class="number">0</span>]</span><br><span class="line">item_1 = (<span class="number">1</span>-(x[<span class="number">0</span>] - x[<span class="number">1</span>])) + (<span class="number">1</span> - (x[<span class="number">0</span>] - x[<span class="number">2</span>]))    <span class="comment"># [0]</span></span><br><span class="line">item_2 = (<span class="number">1</span>-(x[<span class="number">3</span>] - x[<span class="number">1</span>])) + (<span class="number">1</span> - (x[<span class="number">3</span>] - x[<span class="number">2</span>]))    <span class="comment"># [3]</span></span><br><span class="line">loss_h = (item_1 + item_2) / x.shape[<span class="number">0</span>]</span><br><span class="line"><span class="built_in">print</span>(loss_h)</span><br></pre></td></tr></table></figure>
+<h2 id="12-nn-SoftMarginLoss"><a href="#12-nn-SoftMarginLoss" class="headerlink" title="12.nn.SoftMarginLoss"></a>12.nn.SoftMarginLoss</h2><p>功能：计算二分类的logistic损失</p>
+<script type="math/tex; mode=display">
+\operatorname{loss}(x, y)=\sum_{i} \frac{\log (1+\exp (-y[i] \times x[i]))}{\text { x.nelement }()}</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nn.SoftMarginLoss(size_average=<span class="literal">None</span>, </span><br><span class="line">                  reduce=<span class="literal">None</span>, </span><br><span class="line">                  reduction=<span class="string">&#x27;mean&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="13-nn-MultiLabelSoftMarginLoss"><a href="#13-nn-MultiLabelSoftMarginLoss" class="headerlink" title="13.nn.MultiLabelSoftMarginLoss"></a>13.nn.MultiLabelSoftMarginLoss</h2><p>功能：SoftMarginLoss多标签版本</p>
+<script type="math/tex; mode=display">
+\operatorname{los} s(x, y)=-\frac{1}{C} * \sum_{i} y[i] * \log \left((1+\exp (-x[i]))^{-1}\right)+(1-y[i]) * \log \left(\frac{\exp (-x[i])}{(1+\exp (-x[i]))}\right)</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nn.MultiLabelSoftMarginLoss(weight=<span class="literal">None</span>, </span><br><span class="line">                            size_average=<span class="literal">None</span>, </span><br><span class="line">                            reduce=<span class="literal">None</span>, </span><br><span class="line">                            reduction=<span class="string">&#x27;mean&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="14-nn-MultiMarginLoss"><a href="#14-nn-MultiMarginLoss" class="headerlink" title="14.nn.MultiMarginLoss"></a>14.nn.MultiMarginLoss</h2><p>功能：计算多分类的折页损失</p>
+<script type="math/tex; mode=display">
+\operatorname{loss}(x, y)=\frac{\left.\sum_{i} \max (0, \operatorname{margin}-x[y]+x[i])\right)^{p}}{x . \operatorname{size}(0)}</script><p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF9-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/image-20200821162352276.png" alt="image-20200821162352276"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">nn.MultiMarginLoss(p=<span class="number">1</span>, <span class="comment">#可选参数1或2</span></span><br><span class="line">                   margin=<span class="number">1.0</span>, <span class="comment">#边界值</span></span><br><span class="line">                   weight=<span class="literal">None</span>, <span class="comment">#各类别的loss设置权值</span></span><br><span class="line">                   size_average=<span class="literal">None</span>, </span><br><span class="line">                   reduce=<span class="literal">None</span>, </span><br><span class="line">                   reduction=<span class="string">&#x27;mean&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="15-nn-TripletMarginLoss"><a href="#15-nn-TripletMarginLoss" class="headerlink" title="15.nn.TripletMarginLoss"></a>15.nn.TripletMarginLoss</h2><p>功能：计算三元组损失，人脸验证中常用</p>
+<script type="math/tex; mode=display">
+\begin{array}{c}
+L(a, p, n)=\max \left\{d\left(a_{i}, p_{i}\right)-d\left(a_{i}, n_{i}\right)+\operatorname{margin}, 0\right\} \\
+\qquad d\left(x_{i}, y_{i}\right)=\left\|\mathbf{x}_{i}-\mathbf{y}_{i}\right\|_{p}
+\end{array}</script><p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF9-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/image-20200821162803647.png" alt="image-20200821162803647" style="zoom:100%;"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">nn.TripletMarginLoss(margin=<span class="number">1.0</span>, </span><br><span class="line">                     p=<span class="number">2.0</span>, </span><br><span class="line">                     eps=<span class="number">1e-06</span>, </span><br><span class="line">                     swap=<span class="literal">False</span>, </span><br><span class="line">                     size_average=<span class="literal">None</span>, </span><br><span class="line">                     reduce=<span class="literal">None</span>, </span><br><span class="line">                     reduction=<span class="string">&#x27;mean&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="16-nn-HingeEmbeddingLoss"><a href="#16-nn-HingeEmbeddingLoss" class="headerlink" title="16.nn.HingeEmbeddingLoss"></a>16.nn.HingeEmbeddingLoss</h2><p>功能：计算两个输入的相似性，常用于非线性embedding和半监督学习</p>
+<p>特别注意：输入x应为两个输入之差的绝对值。</p>
+<script type="math/tex; mode=display">
+l_{n}=\left\{\begin{array}{ll}
+x_{n}, & \text { if } y_{n}=1 \\
+\max \left\{0, \Delta-x_{n}\right\}, & \text { if } y_{n}=-1
+\end{array}\right.</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nn.HingeEmbeddingLoss(margin=<span class="number">1.0</span>, </span><br><span class="line">                      size_average=<span class="literal">None</span>, </span><br><span class="line">                      reduce=<span class="literal">None</span>, </span><br><span class="line">                      reduction=<span class="string">&#x27;mean’)</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">inputs = torch.tensor([[<span class="number">1.</span>, <span class="number">0.8</span>, <span class="number">0.5</span>]])</span><br><span class="line">target = torch.tensor([[<span class="number">1</span>, <span class="number">1</span>, -<span class="number">1</span>]])</span><br><span class="line">loss_f = nn.HingeEmbeddingLoss(margin=<span class="number">1</span>, reduction=<span class="string">&#x27;none&#x27;</span>)</span><br><span class="line">loss = loss_f(inputs, target)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Hinge Embedding Loss&quot;</span>, loss)</span><br></pre></td></tr></table></figure>
+<h2 id="17-nn-CosineEmbeddingLoss"><a href="#17-nn-CosineEmbeddingLoss" class="headerlink" title="17.nn.CosineEmbeddingLoss"></a>17.nn.CosineEmbeddingLoss</h2><p>功能:采用余弦相似度计算两个输入的相似性</p>
+<script type="math/tex; mode=display">
+\operatorname{loss}(x, y)=\left\{\begin{array}{ll}
+1-\cos \left(x_{1}, x_{2}\right), & \text { if } y=1 \\
+\max \left(0, \cos \left(x_{1}, x_{2}\right)-\operatorname{margin}\right), & \text { if } y=-1
+\end{array}\right. \\
+\cos (\theta)=\frac{A \cdot B}{\|A\|\|B\|}=\frac{\sum_{i=1}^{n} A_{i} \times B_{i}}{\sqrt{\sum_{i=1}^{n}\left(A_{i}\right)^{2}} \times \sqrt{\sum_{i=1}^{n}\left(B_{i}\right)^{2}}}</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nn.CosineEmbeddingLoss(margin=<span class="number">0.0</span>, <span class="comment">#可取值[-1, 1] , 推荐为[0, 0.5]</span></span><br><span class="line">                       size_average=<span class="literal">None</span>, </span><br><span class="line">                       reduce=<span class="literal">None</span>, </span><br><span class="line">                       reduction=<span class="string">&#x27;mean&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="18-nn-CTCLoss"><a href="#18-nn-CTCLoss" class="headerlink" title="18.nn.CTCLoss"></a>18.nn.CTCLoss</h2><p>功能： 计算CTC损失，解决时序类数据的分类</p>
+<p>Connectionist Temporal Classification</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">torch.nn.CTCLoss(blank=<span class="number">0</span>, </span><br><span class="line">                 reduction=<span class="string">&#x27;mean&#x27;</span>, </span><br><span class="line">                 zero_infinity=<span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF9-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/image-20200821163417976.png" alt="image-20200821163417976" style="zoom: 100%;"></p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>buptyqx</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="http://example.com/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF9-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/">http://example.com/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF9-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/%E7%BC%96%E7%A8%8B/"># 编程</a>
+                    
+                        <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"># 深度学习</a>
+                    
+                        <a href="/tags/Pytorch/"># Pytorch</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF10-%E4%BC%98%E5%8C%96%E5%99%A8/">pytorch日积月累10-优化器</a>
+            
+            
+            <a class="next" rel="next" href="/2022/06/30/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF8-%E6%9D%83%E5%80%BC%E5%88%9D%E5%A7%8B%E5%8C%96/">pytorch日积月累8-权值初始化</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© buptyqx | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"position":"left","width":180,"height":360},"mobile":{"show":true},"log":false});</script></body>
+
+</html>

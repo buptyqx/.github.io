@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ch">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="buptyqx">
+
+
+
+
+
+<title>pytorch日积月累5-pytorch数据读取机制 | buptyqx&#39;s BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">BUPTyqx&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">BUPTyqx&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">pytorch日积月累5-pytorch数据读取机制</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">buptyqx</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">June 29, 2022&nbsp;&nbsp;14:53:05</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF/">pytorch日积月累</a>
+                            
+                        </span>
+                    
+	                
+    		            <span class="post-count">
+	                Words:
+    		            <a href="">319</a>  
+    		            </span>
+	                
+	                
+    		            <span class="post-count">
+	                Time:
+    		            <a href="">1min</a>  
+   	                    </span>
+	                 
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="pytorch日积月累5-pytorch数据读取机制"><a href="#pytorch日积月累5-pytorch数据读取机制" class="headerlink" title="pytorch日积月累5-pytorch数据读取机制"></a>pytorch日积月累5-pytorch数据读取机制</h1><h2 id="DataLoader和DataSet"><a href="#DataLoader和DataSet" class="headerlink" title="DataLoader和DataSet"></a>DataLoader和DataSet</h2><ul>
+<li><code>torch.utils.data.DataLoader</code></li>
+<li>功能：构建可迭代的数据装载器</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#构建可迭代的数据装载器</span></span><br><span class="line">torch.utils.data.DataLoader( dataset,<span class="comment">#Dataset类，决定数据从哪读取以及如何读取</span></span><br><span class="line">                            batch_size=<span class="number">1</span>,<span class="comment">#批大小</span></span><br><span class="line">                            shuffle=<span class="literal">False</span>,<span class="comment">#每个epoch是否乱序</span></span><br><span class="line">                            num_workers=<span class="number">0</span>,<span class="comment">#是否多进程读取数据</span></span><br><span class="line">                            drop_last=<span class="literal">False</span>,<span class="comment">#当样本数不能被batchsize整除时，是否舍弃最后一波数据</span></span><br><span class="line">                           )</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>epoch</strong>: 所有训练样本都已输入到模型中，称为一个epoch</li>
+<li><strong>iteration</strong>：一批样本输入到模型中，称之为一个iteration</li>
+<li><strong>batchsize</strong>：批大小，决定一个epoch有多少个iteration</li>
+</ul>
+<p>【举例】</p>
+<ul>
+<li>样本总数：80， Batchsize：8 ，则1 Epoch = 10 Iteration</li>
+<li>样本总数：87， Batchsize：8 <ul>
+<li>1 Epoch = 10 Iteration  when  <code>drop_last = True</code></li>
+<li>1 Epoch = 11 Iteration  when  <code>drop_last = False</code></li>
+</ul>
+</li>
+</ul>
+<p><code>torch.utils.data.Dataset</code></p>
+<ul>
+<li>功能：Dataset抽象类，所有自定义的Dataset需要继承它，并且复写<code>__getitem__()</code></li>
+<li><code>getitem</code> :接收一个索引，返回一个样本</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Dataset</span>(<span class="title class_ inherited__">object</span>):</span><br><span class="line">	<span class="keyword">def</span> <span class="title function_">__getitem__</span>(<span class="params">self, index</span>):</span><br><span class="line">		<span class="keyword">raise</span> NotImplementedError</span><br><span class="line">        </span><br><span class="line">	<span class="keyword">def</span> <span class="title function_">__add__</span>(<span class="params">self, other</span>):</span><br><span class="line">		<span class="keyword">return</span> ConcatDataset([self, other])</span><br></pre></td></tr></table></figure>
+<p>数据读取：</p>
+<ul>
+<li>读哪些数据——sampler输出的index</li>
+<li>从哪里读数据——DataSet中的data_dir</li>
+<li>怎么读数据——Dataset中的getitem</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">train_data = RDataset(data_dir=train_dir, transform=train_transform)</span><br><span class="line">train_loader = DataLoader(dataset=train_data, batach_size=BATCH_SIZE, shuffle=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+<p>数据读取的过程：</p>
+<p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF5-pytorch%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96%E6%9C%BA%E5%88%B6/image-20200820203241733.png" alt="image-20200820203241733"></p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>buptyqx</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="http://example.com/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF5-pytorch%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96%E6%9C%BA%E5%88%B6/">http://example.com/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF5-pytorch%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96%E6%9C%BA%E5%88%B6/</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/%E7%BC%96%E7%A8%8B/"># 编程</a>
+                    
+                        <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"># 深度学习</a>
+                    
+                        <a href="/tags/Pytorch/"># Pytorch</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF6-pytorch%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6/">pytorch日积月累6-pytorch数据预处理机制</a>
+            
+            
+            <a class="next" rel="next" href="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/">pytorch日积月累4-梯度与自动求导</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© buptyqx | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"position":"left","width":180,"height":360},"mobile":{"show":true},"log":false});</script></body>
+
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ch">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="buptyqx">
+
+
+
+
+
+<title>pytorch日积月累4-梯度与自动求导 | buptyqx&#39;s BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">BUPTyqx&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">BUPTyqx&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">pytorch日积月累4-梯度与自动求导</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">buptyqx</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">June 29, 2022&nbsp;&nbsp;14:19:39</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF/">pytorch日积月累</a>
+                            
+                        </span>
+                    
+	                
+    		            <span class="post-count">
+	                Words:
+    		            <a href="">1,606</a>  
+    		            </span>
+	                
+	                
+    		            <span class="post-count">
+	                Time:
+    		            <a href="">8min</a>  
+   	                    </span>
+	                 
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="pytorch日积月累4-梯度与自动求导"><a href="#pytorch日积月累4-梯度与自动求导" class="headerlink" title="pytorch日积月累4-梯度与自动求导"></a>pytorch日积月累4-梯度与自动求导</h1><h2 id="1-深度学习的核心——梯度"><a href="#1-深度学习的核心——梯度" class="headerlink" title="1.深度学习的核心——梯度"></a>1.深度学习的核心——梯度</h2><p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20200721124255052.png" alt="image-20200721124255052"></p>
+<p>learnrate：学习率，迭代速度的限制因素。</p>
+<p>设置不同的梯度下降的求解器</p>
+<script type="math/tex; mode=display">
+loss=(WX+b-y)^2\\
+w'=w-lr\times \frac{\bigtriangledown loss }{\bigtriangledown w}</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">compute_error_for_line_given_points</span>(<span class="params">b,w,points</span>):</span><br><span class="line">    totalError=<span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>,<span class="built_in">len</span>(points)):</span><br><span class="line">        x=points[i,<span class="number">0</span>]<span class="comment">#取x值</span></span><br><span class="line">        y=points[i,<span class="number">1</span>]<span class="comment">#取y值</span></span><br><span class="line">        totalError+=(y-(w*x+b))**<span class="number">2</span></span><br><span class="line">    <span class="keyword">return</span> totalError/<span class="built_in">float</span>(<span class="built_in">len</span>(points))<span class="comment">#做平均</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">step_gradient</span>(<span class="params">b_current,w_current,points,learningRate</span>):</span><br><span class="line">    b_gradient=<span class="number">0</span></span><br><span class="line">    w_gradient=<span class="number">0</span></span><br><span class="line">    N=<span class="built_in">float</span>(<span class="built_in">len</span>(points))</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>,<span class="built_in">len</span>(points)):</span><br><span class="line">        x = points[i, <span class="number">0</span>]  <span class="comment"># 取x值</span></span><br><span class="line">        y = points[i, <span class="number">1</span>]  <span class="comment"># 取y值</span></span><br><span class="line">        <span class="comment">#通过数学方法计算出求导公式，然后代入计算。</span></span><br><span class="line">        b_gradient+=-(<span class="number">2</span>/N)*(y-((w_current*x)+b_current))<span class="comment">#对b求导</span></span><br><span class="line">        w_gradient+=-(<span class="number">2</span>/N)*x*(y-((w_current*x)+b_current))<span class="comment">#对w求导</span></span><br><span class="line">    new_b=b_current-(learningRate*b_gradient)</span><br><span class="line">    new_w=w_current-(learningRate*w_gradient)</span><br><span class="line">    <span class="keyword">return</span> [new_b,new_w]</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">gradient_descent_runner</span>(<span class="params">points,starting_b,starting_w,</span></span><br><span class="line"><span class="params">                            learing_rate,num_iterations</span>):</span><br><span class="line">    b=starting_b</span><br><span class="line">    w=starting_w</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(num_iterations):</span><br><span class="line">        b,m=step_gradient(b,w,np.array(points),learing_rate)</span><br><span class="line">    <span class="keyword">return</span> [b,m]</span><br></pre></td></tr></table></figure>
+<h2 id="2-随机梯度"><a href="#2-随机梯度" class="headerlink" title="2.随机梯度"></a>2.随机梯度</h2><h3 id="2-1什么是梯度"><a href="#2-1什么是梯度" class="headerlink" title="2.1什么是梯度"></a>2.1什么是梯度</h3><p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20200727115800238.png" alt="image-20200727115800238" style="zoom:33%;"></p>
+<p><strong>Optimizer Performance</strong></p>
+<p>▪ initialization status（初始值）</p>
+<p>▪ learning rate（学习率）</p>
+<p>▪ momentum（动量，惯性）</p>
+<h3 id="2-2激活函数及其梯度"><a href="#2-2激活函数及其梯度" class="headerlink" title="2.2激活函数及其梯度"></a>2.2激活函数及其梯度</h3><p>激活函数：</p>
+<p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20200727171458040.png" alt="image-20200727171458040" style="zoom:40%;"></p>
+<p>最简单的激活函数：</p>
+<p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20200727171550864.png" alt="image-20200727171550864"></p>
+<p><strong>Sigmoid / Logistic</strong>函数——光滑可导</p>
+<p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20200727171607779.png" alt="image-20200727171607779"></p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\frac{d}{d x} \sigma(x) &=\frac{d}{d x}\left(\frac{1}{1+e^{-x}}\right) \\
+&=\frac{e^{-x}}{\left(1+e^{-x}\right)^{2}} \\
+&=\frac{\left(1+e^{-x}\right)-1}{\left(1+e^{-x}\right)^{2}} \\
+&=\frac{1+e^{-x}}{\left(1+e^{-x}\right)^{2}}-\left(\frac{1}{1+e^{-x}}\right)^{2} \\
+&=\sigma(x)-\sigma(x)^{2} \\
+\sigma^{\prime} &=\sigma(1-\sigma)
+\end{aligned}</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">a=torch.linspace(-<span class="number">100</span>,<span class="number">100</span>,<span class="number">10</span>)</span><br><span class="line">torch.sigmoid(a)</span><br></pre></td></tr></table></figure>
+<p><strong>Tanh</strong>——RNN中用的较多</p>
+<p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20200727171926170.png" alt="image-20200727171926170"></p>
+<script type="math/tex; mode=display">
+\begin{array}{l}
+\frac{d}{d x} \tanh (x)=\frac{\left(e^{x}+e^{-x}\right)\left(e^{x}+e^{-x}\right)-\left(e^{x}-e^{-x}\right)\left(e^{x}-e^{-x}\right)}{\left(e^{x}+e^{-x}\right)^{2}} \\
+=1-\frac{\left(e^{x}-e^{-x}\right)^{2}}{\left(e^{x}+e^{-x}\right)^{2}}=1-\tanh ^{2}(x)
+\end{array}</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">a=torch.linspace(-<span class="number">1</span>,<span class="number">1</span>,<span class="number">10</span>)</span><br><span class="line">torch.tanh(a)</span><br></pre></td></tr></table></figure>
+<p><strong>Rectified Linear Unit</strong>——RELU——非线性激活函数</p>
+<p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20200727172058939.png" alt="image-20200727172058939"></p>
+<script type="math/tex; mode=display">
+f^{\prime}(x)=\left\{\begin{array}{ll}
+0 & \text { for } x<0 \\
+1 & \text { for } x \geq 0
+\end{array}\right.</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> torch.nn <span class="keyword">import</span> functional <span class="keyword">as</span> F</span><br><span class="line">a=torch.linspace(-<span class="number">1</span>,<span class="number">1</span>,<span class="number">10</span>)</span><br><span class="line">torch.relu(a)</span><br><span class="line">F.relu(a)</span><br></pre></td></tr></table></figure>
+<h3 id="2-3LOSS及其梯度"><a href="#2-3LOSS及其梯度" class="headerlink" title="2.3LOSS及其梯度"></a>2.3LOSS及其梯度</h3><p><strong>Mean Squared Error(MSE)</strong></p>
+<script type="math/tex; mode=display">
+\begin{array}{l}
+\operatorname{loss} =\sum[y-(x w+b)]^{2} \\
+L 2-\operatorname{norm}=|| y-(x w+b)||_{2} \\
+\operatorname{loss} =\operatorname{norm}(y-(x w+b))^{2}
+\end{array}</script><p><strong>Derivative</strong></p>
+<script type="math/tex; mode=display">
+\operatorname{loss} =\sum\left[y-f_{\theta}(x)\right]^{2} \\
+\frac{ { \nabla loss }}{\nabla \theta}=2 \sum\left[y-f_{\theta}(x)\right] \times \frac{\nabla f_{\theta}(x)}{\nabla \theta}</script><ul>
+<li><p><code>torch.autograd.grad(loss, [w1, w2,…])</code>——-&gt;<code>[w1 grad, w2 grad…]</code></p>
+</li>
+<li><p><code>loss.backward()</code> —-&gt;   <code>w1.grad   w2.grad</code></p>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">x=torch.ones(<span class="number">1</span>)</span><br><span class="line">w=torch.full([<span class="number">1</span>],<span class="number">2</span>)</span><br><span class="line">w.requires_grad_()<span class="comment">#更新w的信息为可求导的</span></span><br><span class="line">mse=F.mse_loss(torch.ones(<span class="number">1</span>),x*w)<span class="comment">#重新绘制动态图</span></span><br><span class="line">torch.autograd.grad(mse,[w])</span><br></pre></td></tr></table></figure>
+<p><strong>softmax</strong></p>
+<p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/Python+Java+人工智能+c++/深度学习/image-20200727174154540.png" alt="image-20200727174154540" style="zoom:80%;"></p>
+<script type="math/tex; mode=display">
+p_{i}=\frac{e^{a_{i}}}{\sum_{k=1}^{N} e^{a_{k}}}</script><script type="math/tex; mode=display">
+when \ i=j
+\begin{aligned}
+\frac{\partial \frac{e^{a_{i}}}{\sum_{k=1}^{N} e^{a_{k}}}}{\partial a_{j}} &=\frac{e^{a_{i}} \sum_{k=1}^{N} e^{a_{k}}-e^{a_{j}} e^{a_{i}}}{\left(\sum_{k=1}^{N} e^{a_{k}}\right)^{2}} \\
+&=\frac{e^{a_{i}}\left(\sum_{k=1}^{N} e^{a_{k}}-e^{a_{j}}\right)}{\left(\sum_{k=1}^{N} e^{a_{k}}\right)^{2}} \\
+&=\frac{e^{a_{j}}}{\sum_{k=1}^{N} e^{a_{k}}} \times \frac{\left(\sum_{k=1}^{N} e^{a_{k}}-e^{a_{j}}\right)}{\sum_{k=1}^{N} e^{a_{k}}} \\
+&=p_{i}\left(1-p_{j}\right)
+\end{aligned}</script><script type="math/tex; mode=display">
+when\ \ \   i \neq j   \begin{aligned} \frac{\partial \frac{e^{a_{i}}}{\sum_{k=1}^{N} e^{a_{k}}}}{\partial a_{j}} &=\frac{0-e^{a_{j}} e^{a_{i}}}{\left(\sum_{k=1}^{N} e^{a_{k}}\right)^{2}} \\ &=\frac{-e^{a_{j}}}{\sum_{k=1}^{N} e^{a_{k}}} \times \frac{e^{a_{i}}}{\sum_{k=1}^{N} e^{a_{k}}} \\ &=-p_{j} \cdot p_{i} \end{aligned}</script><p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20200727174942214.png" alt="image-20200727174942214" style="zoom:60%;"></p>
+<h3 id="2-4利用pytorch实现线性回归"><a href="#2-4利用pytorch实现线性回归" class="headerlink" title="2.4利用pytorch实现线性回归"></a>2.4利用pytorch实现线性回归</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line">torch.manual_seed(<span class="number">10</span>)</span><br><span class="line">lr = <span class="number">0.05</span>  <span class="comment"># 学习率    20191015修改</span></span><br><span class="line"><span class="comment"># 创建训练数据</span></span><br><span class="line">x = torch.rand(<span class="number">20</span>, <span class="number">1</span>) * <span class="number">10</span>  <span class="comment"># x data (tensor), shape=(20, 1)</span></span><br><span class="line">y = <span class="number">2</span>*x + (<span class="number">5</span> + torch.randn(<span class="number">20</span>, <span class="number">1</span>))  <span class="comment"># y data (tensor), shape=(20, 1)</span></span><br><span class="line"><span class="comment"># 构建线性回归参数</span></span><br><span class="line">w = torch.randn((<span class="number">1</span>), requires_grad=<span class="literal">True</span>)</span><br><span class="line">b = torch.zeros((<span class="number">1</span>), requires_grad=<span class="literal">True</span>)<span class="comment">#随机初始化可求导</span></span><br><span class="line"><span class="keyword">for</span> iteration <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1000</span>):</span><br><span class="line">    <span class="comment"># 前向传播</span></span><br><span class="line">    wx = torch.mul(w, x)</span><br><span class="line">    y_pred = torch.add(wx, b)</span><br><span class="line">    <span class="comment"># 计算 MSE loss</span></span><br><span class="line">    loss = (<span class="number">0.5</span> * (y - y_pred) ** <span class="number">2</span>).mean()</span><br><span class="line">    <span class="comment"># 反向传播</span></span><br><span class="line">    loss.backward()</span><br><span class="line">    <span class="comment"># 更新参数</span></span><br><span class="line">    b.data.sub_(lr * b.grad)</span><br><span class="line">    w.data.sub_(lr * w.grad)</span><br></pre></td></tr></table></figure>
+<h2 id="3-自动求导"><a href="#3-自动求导" class="headerlink" title="3.自动求导"></a>3.自动求导</h2><h3 id="3-1torch-autograd"><a href="#3-1torch-autograd" class="headerlink" title="3.1torch.autograd"></a>3.1torch.autograd</h3><ul>
+<li><code>torch.autograd.backward</code></li>
+<li>功能：自动求取梯度</li>
+<li>函数说明如下：</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#第一个常用的函数</span></span><br><span class="line">torch.autograd.backward(tensors,</span><br><span class="line">                        grad_tensors=<span class="literal">None</span>,<span class="comment">#多梯度权重</span></span><br><span class="line">                        retain_graph=<span class="literal">None</span>,<span class="comment">#保存计算图</span></span><br><span class="line">                        create_graph=<span class="literal">False</span>)<span class="comment">#创建导数计算图，用于高阶求导</span></span><br></pre></td></tr></table></figure>
+<p>使用反向传播计算梯度：</p>
+<ul>
+<li><code>retain_graph=True</code>用于保存动态图</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">w = torch.tensor([<span class="number">1.</span>], requires_grad=<span class="literal">True</span>)</span><br><span class="line">x = torch.tensor([<span class="number">2.</span>], requires_grad=<span class="literal">True</span>)</span><br><span class="line">a = torch.add(w, x)</span><br><span class="line">b = torch.add(w, <span class="number">1</span>)</span><br><span class="line">y = torch.mul(a, b)</span><br><span class="line">y.backward(retain_graph=<span class="literal">True</span>)</span><br><span class="line"><span class="built_in">print</span>(w.grad)</span><br><span class="line">y.backward()</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20220629144735977.png" alt="image-20220629144735977"></p>
+<ul>
+<li><code>gradient=grad_tensors</code>用于多个梯度之间的权重计算</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">w = torch.tensor([<span class="number">1.</span>], requires_grad=<span class="literal">True</span>)</span><br><span class="line">x = torch.tensor([<span class="number">2.</span>], requires_grad=<span class="literal">True</span>)</span><br><span class="line">a = torch.add(w, x)     <span class="comment"># retain_grad()</span></span><br><span class="line">b = torch.add(w, <span class="number">1</span>)</span><br><span class="line">y0 = torch.mul(a, b)    <span class="comment"># y0 = (x+w) * (w+1)</span></span><br><span class="line">y1 = torch.add(a, b)    <span class="comment"># y1 = (x+w) + (w+1)    dy1/dw = 2</span></span><br><span class="line">loss = torch.cat([y0, y1], dim=<span class="number">0</span>)       <span class="comment"># [y0, y1]</span></span><br><span class="line">grad_tensors = torch.tensor([<span class="number">1.</span>, <span class="number">2.</span>])</span><br><span class="line">loss.backward(gradient=grad_tensors)    </span><br><span class="line"><span class="comment"># gradient 传入 torch.autograd.backward()中的grad_tensors</span></span><br><span class="line"><span class="built_in">print</span>(w.grad)</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20220629144753443.png" alt="image-20220629144753443"></p>
+<ul>
+<li><code>torch.autograd.grad</code></li>
+<li>功能：求取梯度</li>
+<li>函数说明如下：</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">torch.autograd.grad(outputs,<span class="comment">#用于求导的张量</span></span><br><span class="line">                    inputs,<span class="comment">#需要梯度的张量</span></span><br><span class="line">                    grad_tensors=<span class="literal">None</span>,<span class="comment">#多梯度权重</span></span><br><span class="line">                    retain_graph=<span class="literal">None</span>,<span class="comment">#保存计算图</span></span><br><span class="line">                    create_graph=<span class="literal">False</span>)<span class="comment">#创建导数计算图，用于高阶求导</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">x = torch.tensor([<span class="number">3.</span>], requires_grad=<span class="literal">True</span>)</span><br><span class="line">y = torch.<span class="built_in">pow</span>(x, <span class="number">2</span>)     <span class="comment"># y = x**2</span></span><br><span class="line">grad_1 = torch.autograd.grad(y, x, create_graph=<span class="literal">True</span>)   </span><br><span class="line"><span class="comment"># grad_1 = dy/dx = 2x = 2 * 3 = 6</span></span><br><span class="line"><span class="built_in">print</span>(grad_1)</span><br><span class="line">grad_2 = torch.autograd.grad(grad_1[<span class="number">0</span>], x)              </span><br><span class="line"><span class="comment"># grad_2 = d(dy/dx)/dx = d(2x)/dx = 2</span></span><br><span class="line"><span class="built_in">print</span>(grad_2)</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20220629144816196.png" alt="image-20220629144816196"></p>
+<p><strong>autograd小贴士：</strong></p>
+<ul>
+<li><strong>梯度不自动清零</strong></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">w = torch.tensor([<span class="number">1.</span>], requires_grad=<span class="literal">True</span>)</span><br><span class="line">x = torch.tensor([<span class="number">2.</span>], requires_grad=<span class="literal">True</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>):</span><br><span class="line">    a = torch.add(w, x)</span><br><span class="line">    b = torch.add(w, <span class="number">1</span>)</span><br><span class="line">    y = torch.mul(a, b)</span><br><span class="line">    y.backward()</span><br><span class="line">    <span class="built_in">print</span>(w.grad)</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20220629144836358.png" alt="image-20220629144836358"></p>
+<ul>
+<li><strong>依赖于叶子结点的结点，requires_grad默认为True</strong></li>
+<li><strong>叶子结点不可执行in-place</strong></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">a = torch.ones((<span class="number">1</span>, ))</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">id</span>(a), a)</span><br><span class="line">a = a + torch.ones((<span class="number">1</span>, ))<span class="comment">#in_place操作</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">id</span>(a), a)</span><br><span class="line">a += torch.ones((<span class="number">1</span>, ))<span class="comment">#place操作</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">id</span>(a), a)</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/image-20220629144852097.png" alt="image-20220629144852097"></p>
+<h3 id="3-2逻辑回归"><a href="#3-2逻辑回归" class="headerlink" title="3.2逻辑回归"></a>3.2逻辑回归</h3><p>利用pytorch生成训练的数据</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot sas plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="comment">#step1:数据</span></span><br><span class="line">sample_nums=<span class="number">100</span></span><br><span class="line">mean_value=<span class="number">1.7</span></span><br><span class="line">bias=<span class="number">100</span></span><br><span class="line">n_data=torch.ones(sample_nums,<span class="number">2</span>)</span><br><span class="line">x0=torch.normal(mean_value*n_data,<span class="number">1</span>)+bias     <span class="comment">#类别0 数据shape=(100,2)</span></span><br><span class="line">y0=torch.zeros(sample_nums)                   <span class="comment">#类别0 标签shape=(100,1)</span></span><br><span class="line">x1=torch.normal(-mean_value*n_data,<span class="number">1</span>)+bias    <span class="comment">#类别1 数据shape=(100,2)</span></span><br><span class="line">y0=torch.zeros(sample_nums)                   <span class="comment">#类别1 标签shape=(100,1) </span></span><br><span class="line">train_x=torch.cat((x0,x1),<span class="number">0</span>)</span><br><span class="line">train_y=torch.cat((y0,y1),<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<p>选择模型：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#step2:模型</span></span><br><span class="line"><span class="comment">#定义逻辑回归中的前向传播算法</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LR</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):<span class="comment">#继承自nn.Module类</span></span><br><span class="line">        <span class="built_in">super</span>(LR,self).__init__()</span><br><span class="line">        self.features=nn.Linear(<span class="number">2</span>,<span class="number">1</span>)</span><br><span class="line">        self.sigmoid=nn.Sigmoid()</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self,x</span>):</span><br><span class="line">        x=self.features(x)</span><br><span class="line">        x=self.sigmoid(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br><span class="line"><span class="comment">#实例化逻辑回归模型</span></span><br><span class="line">lr_net=LR()</span><br></pre></td></tr></table></figure>
+<p>定义损失函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#step3:损失函数</span></span><br><span class="line">loss_fn=nn.BCELoss()<span class="comment">#交叉熵损失函数</span></span><br></pre></td></tr></table></figure>
+<p>定义优化器：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#step4:优化器</span></span><br><span class="line">lr=<span class="number">0.01</span></span><br><span class="line">optimizer=torch.optim.SGD(lr_net.parameters(),lr=lr,momentum=<span class="number">0.9</span>)</span><br><span class="line"><span class="comment">#使用随机梯度下降的优化器</span></span><br></pre></td></tr></table></figure>
+<p>迭代训练模型</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#step5:迭代训练</span></span><br><span class="line"><span class="keyword">for</span> iteration <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">100</span>):</span><br><span class="line">    y_pred=lr_net(train_x)<span class="comment">#前向传播</span></span><br><span class="line">    loss=loss_fn(y_pred.squeeze(),train_y)<span class="comment">#计算loss</span></span><br><span class="line">    loss.backward()<span class="comment">#反向传播</span></span><br><span class="line">    optimizer.step()<span class="comment">#更新参数</span></span><br><span class="line">    optimizer.zero_grad()<span class="comment">#清空梯度</span></span><br><span class="line">    <span class="keyword">if</span> iteration % <span class="number">20</span> == <span class="number">0</span>:</span><br><span class="line">        mask = y_pred.ge(<span class="number">0.5</span>).<span class="built_in">float</span>().squeeze()  <span class="comment"># 以0.5为阈值进行分类</span></span><br><span class="line">        correct = (mask == train_y).<span class="built_in">sum</span>()  <span class="comment"># 计算正确预测的样本个数</span></span><br><span class="line">        acc = correct.item() / train_y.size(<span class="number">0</span>)  <span class="comment"># 计算分类准确率</span></span><br><span class="line">        plt.scatter(x0.data.numpy()[:, <span class="number">0</span>], x0.data.numpy()[:, <span class="number">1</span>], </span><br><span class="line">                    c=<span class="string">&#x27;r&#x27;</span>, label=<span class="string">&#x27;class 0&#x27;</span>)</span><br><span class="line">        plt.scatter(x1.data.numpy()[:, <span class="number">0</span>], x1.data.numpy()[:, <span class="number">1</span>], </span><br><span class="line">                    c=<span class="string">&#x27;b&#x27;</span>, label=<span class="string">&#x27;class 1&#x27;</span>)</span><br><span class="line">        w0, w1 = lr_net.features.weight[<span class="number">0</span>]</span><br><span class="line">        w0, w1 = <span class="built_in">float</span>(w0.item()), <span class="built_in">float</span>(w1.item())</span><br><span class="line">        plot_b = <span class="built_in">float</span>(lr_net.features.bias[<span class="number">0</span>].item())</span><br><span class="line">        plot_x = np.arange(-<span class="number">6</span>, <span class="number">6</span>, <span class="number">0.1</span>)</span><br><span class="line">        plot_y = (-w0 * plot_x - plot_b) / w1</span><br><span class="line">        plt.xlim(-<span class="number">5</span>, <span class="number">7</span>)</span><br><span class="line">        plt.ylim(-<span class="number">7</span>, <span class="number">7</span>)</span><br><span class="line">        plt.plot(plot_x, plot_y)</span><br><span class="line">        plt.text(-<span class="number">5</span>, <span class="number">5</span>, <span class="string">&#x27;Loss=%.4f&#x27;</span> % loss.data.numpy(), </span><br><span class="line">                 fontdict=&#123;<span class="string">&#x27;size&#x27;</span>: <span class="number">20</span>, <span class="string">&#x27;color&#x27;</span>: <span class="string">&#x27;red&#x27;</span>&#125;)</span><br><span class="line">        plt.title(<span class="string">&quot;Iteration: &#123;&#125;\nw0:&#123;:.2f&#125; w1:&#123;:.2f&#125; b: &#123;:.2f&#125; accuracy:&#123;:.2%&#125;&quot;</span></span><br><span class="line">                  .<span class="built_in">format</span>(iteration, w0, w1, plot_b, acc))</span><br><span class="line">        plt.legend()</span><br><span class="line">        plt.show()</span><br><span class="line">        plt.pause(<span class="number">0.5</span>)</span><br><span class="line">        <span class="keyword">if</span> acc &gt; <span class="number">0.99</span>:</span><br><span class="line">            <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>buptyqx</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="http://example.com/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/">http://example.com/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF4-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%B1%82%E5%AF%BC/</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/%E7%BC%96%E7%A8%8B/"># 编程</a>
+                    
+                        <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"># 深度学习</a>
+                    
+                        <a href="/tags/Pytorch/"># Pytorch</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2022/06/29/pytorch%E6%97%A5%E7%A7%AF%E6%9C%88%E7%B4%AF3-%E8%AE%A1%E7%AE%97%E5%9B%BE%E4%B8%8E%E5%8A%A8%E6%80%81%E5%9B%BE%E6%9C%BA%E5%88%B6/">pytorch日积月累3-计算图与动态图机制</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© buptyqx | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/wanko.model.json"},"display":{"position":"left","width":180,"height":360},"mobile":{"show":true},"log":false});</script></body>
+
+</html>
